@@ -1,0 +1,888 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConcoursPro - Système de correction anonyme</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        'primary-foreground': '#ffffff',
+                        secondary: '#f1f5f9',
+                        'secondary-foreground': '#0f172a',
+                        muted: '#f1f5f9',
+                        'muted-foreground': '#64748b',
+                        accent: '#f1f5f9',
+                        'accent-foreground': '#0f172a',
+                        destructive: '#ef4444',
+                        'destructive-foreground': '#ffffff',
+                        border: '#e2e8f0',
+                        input: '#e2e8f0',
+                        ring: '#3b82f6',
+                        background: '#ffffff',
+                        foreground: '#0f172a',
+                        card: '#ffffff',
+                        'card-foreground': '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS personnalisé pour les composants */
+        .btn {
+            @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+        }
+        .btn-primary {
+            @apply bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+        }
+        .btn-outline {
+            @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2;
+        }
+        .btn-secondary {
+            @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2;
+        }
+        .card {
+            @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+        }
+        .card-header {
+            @apply flex flex-col space-y-1.5 p-6;
+        }
+        .card-title {
+            @apply text-2xl font-semibold leading-none tracking-tight;
+        }
+        .card-description {
+            @apply text-sm text-muted-foreground;
+        }
+        .card-content {
+            @apply p-6 pt-0;
+        }
+        .input {
+            @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        }
+        .textarea {
+            @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        }
+        .badge {
+            @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+        }
+        .badge-default {
+            @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+        }
+        .badge-secondary {
+            @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+        }
+        .badge-outline {
+            @apply text-foreground;
+        }
+        .progress {
+            @apply relative h-4 w-full overflow-hidden rounded-full bg-secondary;
+        }
+        .progress-indicator {
+            @apply h-full w-full flex-1 bg-primary transition-all;
+        }
+        .tabs {
+            @apply w-full;
+        }
+        .tabs-list {
+            @apply inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground;
+        }
+        .tabs-trigger {
+            @apply inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm;
+        }
+        .tabs-content {
+            @apply mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icons (version simplifiée)
+        const UserIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+        );
+
+        const UploadIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+        );
+
+        const FileTextIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        );
+
+        const CheckCircleIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const ClockIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const ShieldIcon = () => (
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+        );
+
+        const UsersIcon = () => (
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+        );
+
+        const BarChart3Icon = () => (
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        );
+
+        // Composant Header
+        const Header = ({ user, onLogin, onLogout }) => {
+            return (
+                <header className="border-b bg-card">
+                    <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-2xl font-bold text-primary">ConcoursPro</h1>
+                            <span className="text-sm text-muted-foreground">Système de correction anonyme</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            {user ? (
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <UserIcon />
+                                        <span className="font-medium">{user.name}</span>
+                                        <span className="text-xs bg-secondary px-2 py-1 rounded-full">
+                                            {user.role === 'candidate' ? 'Candidat' : 
+                                             user.role === 'corrector' ? 'Correcteur' : 'Admin'}
+                                        </span>
+                                    </div>
+                                    <button className="btn btn-outline" onClick={onLogout}>
+                                        Déconnexion
+                                    </button>
+                                </div>
+                            ) : (
+                                <button className="btn btn-primary" onClick={onLogin}>
+                                    Se connecter
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </header>
+            );
+        };
+
+        // Modal de connexion
+        const LoginModal = ({ isOpen, onClose, onLogin }) => {
+            const [activeTab, setActiveTab] = useState('candidate');
+            const [candidateForm, setCandidateForm] = useState({ name: '', code: '' });
+            const [correctorForm, setCorrectorForm] = useState({ email: '', password: '' });
+
+            if (!isOpen) return null;
+
+            const handleCandidateLogin = (e) => {
+                e.preventDefault();
+                if (candidateForm.name && candidateForm.code) {
+                    onLogin({ name: candidateForm.name, role: 'candidate' });
+                    onClose();
+                }
+            };
+
+            const handleCorrectorLogin = (e) => {
+                e.preventDefault();
+                if (correctorForm.email && correctorForm.password) {
+                    onLogin({ name: correctorForm.email.split('@')[0], role: 'corrector' });
+                    onClose();
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="card w-full max-w-md mx-4">
+                        <div className="card-header">
+                            <h3 className="card-title flex items-center space-x-2">
+                                <UserIcon />
+                                <span>Connexion</span>
+                            </h3>
+                            <p className="card-description">
+                                Choisissez votre type de compte pour accéder à la plateforme
+                            </p>
+                        </div>
+                        <div className="card-content">
+                            <div className="tabs">
+                                <div className="tabs-list grid w-full grid-cols-2">
+                                    <button 
+                                        className={`tabs-trigger ${activeTab === 'candidate' ? 'data-[state=active]' : ''}`}
+                                        onClick={() => setActiveTab('candidate')}
+                                    >
+                                        Candidat
+                                    </button>
+                                    <button 
+                                        className={`tabs-trigger ${activeTab === 'corrector' ? 'data-[state=active]' : ''}`}
+                                        onClick={() => setActiveTab('corrector')}
+                                    >
+                                        Correcteur
+                                    </button>
+                                </div>
+                                
+                                {activeTab === 'candidate' && (
+                                    <div className="tabs-content">
+                                        <form onSubmit={handleCandidateLogin} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Nom complet</label>
+                                                <input
+                                                    className="input"
+                                                    placeholder="Jean Dupont"
+                                                    value={candidateForm.name}
+                                                    onChange={(e) => setCandidateForm({ ...candidateForm, name: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Code d'accès concours</label>
+                                                <input
+                                                    className="input"
+                                                    placeholder="CONC2024-001"
+                                                    value={candidateForm.code}
+                                                    onChange={(e) => setCandidateForm({ ...candidateForm, code: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <button type="submit" className="btn btn-primary flex-1">
+                                                    Se connecter
+                                                </button>
+                                                <button type="button" className="btn btn-outline" onClick={onClose}>
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
+                                
+                                {activeTab === 'corrector' && (
+                                    <div className="tabs-content">
+                                        <form onSubmit={handleCorrectorLogin} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Email</label>
+                                                <input
+                                                    className="input"
+                                                    type="email"
+                                                    placeholder="correcteur@universite.fr"
+                                                    value={correctorForm.email}
+                                                    onChange={(e) => setCorrectorForm({ ...correctorForm, email: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Mot de passe</label>
+                                                <input
+                                                    className="input"
+                                                    type="password"
+                                                    value={correctorForm.password}
+                                                    onChange={(e) => setCorrectorForm({ ...correctorForm, password: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <button type="submit" className="btn btn-primary flex-1">
+                                                    Se connecter
+                                                </button>
+                                                <button type="button" className="btn btn-outline" onClick={onClose}>
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Dashboard Candidat
+        const CandidateDashboard = () => {
+            const [submissions, setSubmissions] = useState([]);
+            const [uploading, setUploading] = useState(false);
+
+            const handleFileUpload = (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+
+                if (!file.type.includes('pdf') && !file.type.includes('zip')) {
+                    alert('Seuls les fichiers PDF et ZIP sont acceptés.');
+                    return;
+                }
+
+                setUploading(true);
+                
+                setTimeout(() => {
+                    const anonymousId = `ANON-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+                    
+                    const newSubmission = {
+                        id: Date.now().toString(),
+                        filename: file.name,
+                        uploadDate: new Date().toLocaleString('fr-FR'),
+                        status: 'uploaded',
+                        anonymousId
+                    };
+                    
+                    setSubmissions([newSubmission, ...submissions]);
+                    setUploading(false);
+                    
+                    alert(`Copie envoyée avec succès!\nIdentifiant anonyme généré : ${anonymousId}`);
+                    
+                    event.target.value = '';
+                }, 2000);
+            };
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold mb-2">Espace Candidat</h2>
+                        <p className="text-muted-foreground">
+                            Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2">
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3 className="card-title flex items-center space-x-2">
+                                        <UploadIcon />
+                                        <span>Déposer une copie</span>
+                                    </h3>
+                                    <p className="card-description">
+                                        Formats acceptés : PDF, ZIP (max 10 MB)
+                                    </p>
+                                </div>
+                                <div className="card-content">
+                                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                                        <div className="flex justify-center mb-4">
+                                            <UploadIcon />
+                                        </div>
+                                        <label htmlFor="file-upload" className="cursor-pointer">
+                                            <span className="text-lg font-medium">Cliquez pour sélectionner un fichier</span>
+                                            <br />
+                                            <span className="text-sm text-muted-foreground">ou glissez-déposez votre fichier ici</span>
+                                        </label>
+                                        <input
+                                            id="file-upload"
+                                            type="file"
+                                            accept=".pdf,.zip"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                            disabled={uploading}
+                                        />
+                                        {uploading && (
+                                            <div className="mt-4">
+                                                <div className="progress">
+                                                    <div className="progress-indicator" style={{transform: 'translateX(-34%)'}}></div>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    Téléchargement en cours...
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3 className="card-title">Informations importantes</h3>
+                                </div>
+                                <div className="card-content space-y-4">
+                                    <div className="p-4 bg-blue-50 rounded-lg">
+                                        <h4 className="font-medium text-blue-900 mb-2">Anonymisation</h4>
+                                        <p className="text-sm text-blue-700">
+                                            Votre identité sera complètement masquée aux correcteurs grâce à un identifiant anonyme unique.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 bg-green-50 rounded-lg">
+                                        <h4 className="font-medium text-green-900 mb-2">Sécurité</h4>
+                                        <p className="text-sm text-green-700">
+                                            Toutes les données sont chiffrées et stockées de manière sécurisée.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 bg-orange-50 rounded-lg">
+                                        <h4 className="font-medium text-orange-900 mb-2">Délai</h4>
+                                        <p className="text-sm text-orange-700">
+                                            Date limite de dépôt : 15 Décembre 2024 à 23h59
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {submissions.length > 0 && (
+                        <div className="card mt-8">
+                            <div className="card-header">
+                                <h3 className="card-title">Mes copies déposées</h3>
+                                <p className="card-description">
+                                    Historique de vos dépôts avec les identifiants anonymes
+                                </p>
+                            </div>
+                            <div className="card-content">
+                                <div className="space-y-4">
+                                    {submissions.map((submission) => (
+                                        <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                            <div className="flex items-center space-x-4">
+                                                <FileTextIcon />
+                                                <div>
+                                                    <p className="font-medium">{submission.filename}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Déposé le {submission.uploadDate}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-4">
+                                                <div className="text-right">
+                                                    <p className="font-mono text-sm font-medium">{submission.anonymousId}</p>
+                                                    <span className="badge badge-outline text-xs">
+                                                        <CheckCircleIcon />
+                                                        Reçu
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Dashboard Correcteur
+        const CorrectorDashboard = () => {
+            const [copies] = useState([
+                {
+                    id: '1',
+                    anonymousId: 'ANON-K7X9P2M8Q',
+                    filename: 'copie_mathematiques.pdf',
+                    uploadDate: '2024-12-09 14:30',
+                    status: 'pending'
+                },
+                {
+                    id: '2',
+                    anonymousId: 'ANON-L5Y3N6R4T',
+                    filename: 'copie_physique.pdf',
+                    uploadDate: '2024-12-09 15:45',
+                    status: 'in_progress',
+                    score: 15.5,
+                    comments: 'Bonne compréhension des concepts...'
+                },
+                {
+                    id: '3',
+                    anonymousId: 'ANON-M9Z1S7V2W',
+                    filename: 'copie_chimie.pdf',
+                    uploadDate: '2024-12-09 16:20',
+                    status: 'corrected',
+                    score: 18,
+                    comments: 'Excellent travail, raisonnement très clair et méthode rigoureuse.'
+                }
+            ]);
+
+            const [selectedCopy, setSelectedCopy] = useState(null);
+            const [correctionData, setCorrectionData] = useState({ score: '', comments: '' });
+
+            const startCorrection = (copy) => {
+                setSelectedCopy(copy);
+                setCorrectionData({
+                    score: copy.score?.toString() || '',
+                    comments: copy.comments || ''
+                });
+            };
+
+            const submitCorrection = () => {
+                if (!selectedCopy) return;
+                
+                alert(`Correction enregistrée!\nNote attribuée : ${correctionData.score}/20`);
+                
+                setSelectedCopy(null);
+                setCorrectionData({ score: '', comments: '' });
+            };
+
+            const getStatusBadge = (status) => {
+                switch (status) {
+                    case 'pending':
+                        return <span className="badge badge-outline"><ClockIcon />À corriger</span>;
+                    case 'in_progress':
+                        return <span className="badge badge-secondary"><UserIcon />En cours</span>;
+                    case 'corrected':
+                        return <span className="badge badge-default"><CheckCircleIcon />Terminé</span>;
+                }
+            };
+
+            const correctedCount = copies.filter(c => c.status === 'corrected').length;
+            const progressPercentage = (correctedCount / copies.length) * 100;
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold mb-2">Espace Correcteur</h2>
+                        <p className="text-muted-foreground">
+                            Interface de correction anonyme pour les copies de concours
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="card">
+                            <div className="card-content p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Copies à corriger</p>
+                                        <p className="text-2xl font-bold">{copies.filter(c => c.status === 'pending').length}</p>
+                                    </div>
+                                    <ClockIcon />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="card-content p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">En cours</p>
+                                        <p className="text-2xl font-bold">{copies.filter(c => c.status === 'in_progress').length}</p>
+                                    </div>
+                                    <UserIcon />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="card-content p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Corrigées</p>
+                                        <p className="text-2xl font-bold">{correctedCount}</p>
+                                    </div>
+                                    <CheckCircleIcon />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card mb-8">
+                        <div className="card-content p-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="font-medium">Progression globale</h3>
+                                <span className="text-sm text-muted-foreground">{correctedCount}/{copies.length}</span>
+                            </div>
+                            <div className="progress">
+                                <div className="progress-indicator" style={{transform: `translateX(-${100 - progressPercentage}%)`}}></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="card">
+                            <div className="card-header">
+                                <h3 className="card-title">Copies assignées</h3>
+                                <p className="card-description">
+                                    Toutes les identités sont anonymisées pour garantir l'impartialité
+                                </p>
+                            </div>
+                            <div className="card-content">
+                                <div className="space-y-4">
+                                    {copies.map((copy) => (
+                                        <div key={copy.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                                            <div className="flex items-center space-x-4">
+                                                <FileTextIcon />
+                                                <div>
+                                                    <p className="font-mono text-sm font-medium">{copy.anonymousId}</p>
+                                                    <p className="text-sm text-muted-foreground">{copy.uploadDate}</p>
+                                                    {copy.score && (
+                                                        <p className="text-sm font-medium text-green-600">Note: {copy.score}/20</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-4">
+                                                {getStatusBadge(copy.status)}
+                                                <button 
+                                                    className={`btn ${copy.status === 'corrected' ? 'btn-outline' : 'btn-primary'} text-sm`}
+                                                    onClick={() => startCorrection(copy)}
+                                                >
+                                                    {copy.status === 'corrected' ? 'Voir' : 'Corriger'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-header">
+                                <h3 className="card-title">
+                                    {selectedCopy ? `Correction - ${selectedCopy.anonymousId}` : 'Grille de correction'}
+                                </h3>
+                                <p className="card-description">
+                                    {selectedCopy ? 'Attribuez une note et des commentaires' : 'Sélectionnez une copie pour commencer la correction'}
+                                </p>
+                            </div>
+                            <div className="card-content">
+                                {selectedCopy ? (
+                                    <div className="space-y-6">
+                                        <div className="p-4 bg-muted rounded-lg">
+                                            <h4 className="font-medium mb-2">Copie sélectionnée</h4>
+                                            <p className="font-mono text-sm">{selectedCopy.anonymousId}</p>
+                                            <p className="text-sm text-muted-foreground">{selectedCopy.filename}</p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-sm font-medium">Note sur 20</label>
+                                                <input
+                                                    className="input"
+                                                    type="number"
+                                                    min="0"
+                                                    max="20"
+                                                    step="0.5"
+                                                    placeholder="18.5"
+                                                    value={correctionData.score}
+                                                    onChange={(e) => setCorrectionData({ ...correctionData, score: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="text-sm font-medium">Commentaires détaillés</label>
+                                                <textarea
+                                                    className="textarea"
+                                                    placeholder="Points forts, axes d'amélioration, remarques constructives..."
+                                                    rows={6}
+                                                    value={correctionData.comments}
+                                                    onChange={(e) => setCorrectionData({ ...correctionData, comments: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <div className="flex space-x-2">
+                                                <button onClick={submitCorrection} className="btn btn-primary flex-1">
+                                                    Enregistrer la correction
+                                                </button>
+                                                <button className="btn btn-outline" onClick={() => setSelectedCopy(null)}>
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <div className="flex justify-center mb-4">
+                                            <FileTextIcon />
+                                        </div>
+                                        <p className="text-muted-foreground">
+                                            Sélectionnez une copie dans la liste pour commencer la correction
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Composant principal
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [showLoginModal, setShowLoginModal] = useState(false);
+
+            const handleLogin = (userData) => {
+                setUser(userData);
+                setShowLoginModal(false);
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+            };
+
+            if (!user) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+                        <Header 
+                            user={user} 
+                            onLogin={() => setShowLoginModal(true)} 
+                            onLogout={handleLogout} 
+                        />
+                        
+                        <LoginModal 
+                            isOpen={showLoginModal}
+                            onClose={() => setShowLoginModal(false)}
+                            onLogin={handleLogin}
+                        />
+
+                        <section className="container mx-auto px-4 py-16 text-center">
+                            <div className="max-w-4xl mx-auto">
+                                <h1 className="text-5xl font-bold text-primary mb-6">
+                                    Système de Gestion de Concours
+                                </h1>
+                                <h2 className="text-2xl text-muted-foreground mb-8">
+                                    Correction anonyme et sécurisée
+                                </h2>
+                                <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+                                    Plateforme moderne pour la gestion des concours et examens avec 
+                                    anonymisation automatique des copies et interface de correction professionnelle.
+                                </p>
+                                <button 
+                                    className="btn btn-primary text-lg px-8 py-6"
+                                    onClick={() => setShowLoginModal(true)}
+                                >
+                                    Accéder à la plateforme
+                                </button>
+                            </div>
+                        </section>
+
+                        <section className="container mx-auto px-4 py-16">
+                            <h3 className="text-3xl font-bold text-center text-primary mb-12">
+                                Fonctionnalités principales
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                <div className="card text-center hover:shadow-lg transition-shadow">
+                                    <div className="card-header">
+                                        <div className="flex justify-center mb-4 text-blue-600">
+                                            <ShieldIcon />
+                                        </div>
+                                        <h3 className="card-title">Anonymisation</h3>
+                                    </div>
+                                    <div className="card-content">
+                                        <p className="card-description">
+                                            Génération automatique d'identifiants anonymes pour chaque copie
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="card text-center hover:shadow-lg transition-shadow">
+                                    <div className="card-header">
+                                        <div className="flex justify-center mb-4 text-green-600">
+                                            <FileTextIcon />
+                                        </div>
+                                        <h3 className="card-title">Upload sécurisé</h3>
+                                    </div>
+                                    <div className="card-content">
+                                        <p className="card-description">
+                                            Dépôt de documents PDF/ZIP avec chiffrement et sécurité
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="card text-center hover:shadow-lg transition-shadow">
+                                    <div className="card-header">
+                                        <div className="flex justify-center mb-4 text-purple-600">
+                                            <UsersIcon />
+                                        </div>
+                                        <h3 className="card-title">Multi-rôles</h3>
+                                    </div>
+                                    <div className="card-content">
+                                        <p className="card-description">
+                                            Interfaces dédiées pour candidats, correcteurs et administrateurs
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="card text-center hover:shadow-lg transition-shadow">
+                                    <div className="card-header">
+                                        <div className="flex justify-center mb-4 text-orange-600">
+                                            <BarChart3Icon />
+                                        </div>
+                                        <h3 className="card-title">Reporting</h3>
+                                    </div>
+                                    <div className="card-content">
+                                        <p className="card-description">
+                                            Export des résultats et génération de rapports détaillés
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="bg-muted/30 py-16">
+                            <div className="container mx-auto px-4">
+                                <h3 className="text-3xl font-bold text-center text-primary mb-12">
+                                    Comment ça fonctionne
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                                            1
+                                        </div>
+                                        <h4 className="text-xl font-semibold mb-4">Dépôt des copies</h4>
+                                        <p className="text-muted-foreground">
+                                            Les candidats téléchargent leurs copies via l'interface sécurisée
+                                        </p>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                                            2
+                                        </div>
+                                        <h4 className="text-xl font-semibold mb-4">Anonymisation</h4>
+                                        <p className="text-muted-foreground">
+                                            Le système génère automatiquement des identifiants anonymes
+                                        </p>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                                            3
+                                        </div>
+                                        <h4 className="text-xl font-semibold mb-4">Correction</h4>
+                                        <p className="text-muted-foreground">
+                                            Les correcteurs évaluent les copies sans connaître l'identité des candidats
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-background">
+                    <Header 
+                        user={user} 
+                        onLogin={() => setShowLoginModal(true)} 
+                        onLogout={handleLogout} 
+                    />
+                    
+                    {user.role === 'candidate' && <CandidateDashboard />}
+                    {user.role === 'corrector' && <CorrectorDashboard />}
+                </div>
+            );
+        };
+
+        // Rendu de l'application
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
