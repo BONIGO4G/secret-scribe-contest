@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import LoginModal from "@/components/LoginModal";
@@ -23,6 +22,10 @@ const Index = () => {
   };
 
   const handleLogout = () => {
+    setUser(null);
+  };
+
+  const handleReturnToHome = () => {
     setUser(null);
   };
 
@@ -264,8 +267,8 @@ const Index = () => {
         onLogout={handleLogout} 
       />
       
-      {user.role === 'candidate' && <CandidateDashboard />}
-      {user.role === 'corrector' && <CorrectorDashboard />}
+      {user.role === 'candidate' && <CandidateDashboard onReturnToHome={handleReturnToHome} />}
+      {user.role === 'corrector' && <CorrectorDashboard onReturnToHome={handleReturnToHome} />}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, CheckCircle } from "lucide-react";
+import { Upload, FileText, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Submission {
@@ -17,7 +16,11 @@ interface Submission {
   anonymousId: string;
 }
 
-const CandidateDashboard = () => {
+interface CandidateDashboardProps {
+  onReturnToHome?: () => void;
+}
+
+const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -65,11 +68,23 @@ const CandidateDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">Espace Candidat</h2>
-        <p className="text-muted-foreground">
-          Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold mb-2">Espace Candidat</h2>
+          <p className="text-muted-foreground">
+            Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
+          </p>
+        </div>
+        {onReturnToHome && (
+          <Button 
+            variant="outline" 
+            onClick={onReturnToHome}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Retour à l'accueil</span>
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
