@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { FileText, User, Clock, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ApiService } from "@/services/apiService";
 
 interface Copy {
   id: string;
@@ -24,37 +25,39 @@ interface CorrectorDashboardProps {
 }
 
 const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
-  const [copies] = useState<Copy[]>([
-    {
-      id: '1',
-      anonymousId: 'ANON-K7X9P2M8Q',
-      filename: 'copie_mathematiques.pdf',
-      uploadDate: '2024-12-09 14:30',
-      status: 'pending'
-    },
-    {
-      id: '2',
-      anonymousId: 'ANON-L5Y3N6R4T',
-      filename: 'copie_physique.pdf',
-      uploadDate: '2024-12-09 15:45',
-      status: 'in_progress',
-      score: 15.5,
-      comments: 'Bonne compréhension des concepts...'
-    },
-    {
-      id: '3',
-      anonymousId: 'ANON-M9Z1S7V2W',
-      filename: 'copie_chimie.pdf',
-      uploadDate: '2024-12-09 16:20',
-      status: 'corrected',
-      score: 18,
-      comments: 'Excellent travail, raisonnement très clair et méthode rigoureuse.'
-    }
-  ]);
-
+  const [copies, setCopies] = useState<Copy[]>([]);
   const [selectedCopy, setSelectedCopy] = useState<Copy | null>(null);
   const [correctionData, setCorrectionData] = useState({ score: '', comments: '' });
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Charger les soumissions depuis l'API
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      try {
+        const submissions = await ApiService.getSubmissions();
+        const formattedCopies: Copy[] = submissions.map(sub => ({
+          id: sub.id?.toString() || '',
+          anonymousId: sub.anonymousId,
+          filename: sub.filename,
+          uploadDate: sub.upload_date || '',
+          status: 'pending' as const
+        }));
+        setCopies(formattedCopies);
+      } catch (error) {
+        console.error('Erreur lors du chargement des soumissions:', error);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger les soumissions.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSubmissions();
+  }, []);
 
   const startCorrection = (copy: Copy) => {
     setSelectedCopy(copy);
@@ -64,16 +67,43 @@ const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
     });
   };
 
-  const submitCorrection = () => {
+  const submitCorrection = async () => {
     if (!selectedCopy) return;
     
-    toast({
-      title: "Correction enregistrée",
-      description: `Note attribuée : ${correctionData.score}/20`,
-    });
-    
-    setSelectedCopy(null);
-    setCorrectionData({ score: '', comments: '' });
+    try {
+      const correctionResult = await ApiService.createCorrection({
+        submissionId: parseInt(selectedCopy.id),
+        correctorId: 1, // ID du correcteur connecté
+        score: parseFloat(correctionData.score),
+        comments: correctionData.comments
+      });
+
+      if (correctionResult.success) {
+        // Mettre à jour la copie localement
+        setCopies(prevCopies =>
+          prevCopies.map(copy =>
+            copy.id === selectedCopy.id
+              ? { ...copy, status: 'corrected' as const, score: parseFloat(correctionData.score), comments: correctionData.comments }
+              : copy
+          )
+        );
+
+        toast({
+          title: "Correction enregistrée",
+          description: `Note attribuée : ${correctionData.score}/20`,
+        });
+        
+        setSelectedCopy(null);
+        setCorrectionData({ score: '', comments: '' });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast({
+        title: "Erreur de sauvegarde",
+        description: "Impossible d'enregistrer la correction.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: Copy['status']) => {
@@ -88,7 +118,17 @@ const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
   };
 
   const correctedCount = copies.filter(c => c.status === 'corrected').length;
-  const progressPercentage = (correctedCount / copies.length) * 100;
+  const progressPercentage = copies.length > 0 ? (correctedCount / copies.length) * 100 : 0;
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p>Chargement des copies...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

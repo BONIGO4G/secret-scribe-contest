@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ApiService } from "@/services/apiService";
 
 interface Submission {
   id: string;
@@ -41,29 +42,44 @@ const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
 
     setUploading(true);
     
-    // Simulation d'upload
-    setTimeout(() => {
+    try {
+      // Génération d'un ID anonyme
       const anonymousId = `ANON-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      const newSubmission: Submission = {
-        id: Date.now().toString(),
-        filename: file.name,
-        uploadDate: new Date().toLocaleString('fr-FR'),
-        status: 'uploaded',
-        anonymousId
-      };
+      // Upload du fichier via l'API
+      const uploadResult = await ApiService.uploadFile(file, undefined, anonymousId);
       
-      setSubmissions([newSubmission, ...submissions]);
-      setUploading(false);
-      
-      toast({
-        title: "Copie envoyée avec succès",
-        description: `Identifiant anonyme généré : ${anonymousId}`,
-      });
+      if (uploadResult.success) {
+        const newSubmission: Submission = {
+          id: uploadResult.submissionId.toString(),
+          filename: file.name,
+          uploadDate: new Date().toLocaleString('fr-FR'),
+          status: 'uploaded',
+          anonymousId
+        };
+        
+        setSubmissions([newSubmission, ...submissions]);
+        
+        toast({
+          title: "Copie envoyée avec succès",
+          description: `Identifiant anonyme généré : ${anonymousId}`,
+        });
+      } else {
+        throw new Error('Erreur lors de l\'upload');
+      }
       
       // Reset input
       event.target.value = '';
-    }, 2000);
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      toast({
+        title: "Erreur d'upload",
+        description: "Une erreur est survenue lors de l'envoi du fichier.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
