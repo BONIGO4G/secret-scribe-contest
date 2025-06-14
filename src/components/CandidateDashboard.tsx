@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, CheckCircle, ArrowLeft } from "lucide-react";
+import { Upload, FileText, CheckCircle, ArrowLeft, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/services/apiService";
 
@@ -19,9 +20,14 @@ interface Submission {
 
 interface CandidateDashboardProps {
   onReturnToHome?: () => void;
+  candidateInfo?: {
+    name: string;
+    matricule?: string;
+    id?: number;
+  };
 }
 
-const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
+const CandidateDashboard = ({ onReturnToHome, candidateInfo }: CandidateDashboardProps) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -40,14 +46,28 @@ const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
       return;
     }
 
+    // Vérifier la taille (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Fichier trop volumineux",
+        description: "La taille maximale autorisée est de 10 MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setUploading(true);
     
     try {
       // Génération d'un ID anonyme
       const anonymousId = `ANON-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      // Upload du fichier via l'API
-      const uploadResult = await ApiService.uploadFile(file, undefined, anonymousId);
+      // Upload du fichier via l'API avec le matricule
+      const uploadResult = await ApiService.uploadFile(
+        file, 
+        candidateInfo?.matricule, 
+        anonymousId
+      );
       
       if (uploadResult.success) {
         const newSubmission: Submission = {
@@ -62,7 +82,7 @@ const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
         
         toast({
           title: "Copie envoyée avec succès",
-          description: `Identifiant anonyme généré : ${anonymousId}`,
+          description: `Identifiant anonyme : ${anonymousId}`,
         });
       } else {
         throw new Error('Erreur lors de l\'upload');
@@ -86,10 +106,23 @@ const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold mb-2">Espace Candidat</h2>
-          <p className="text-muted-foreground">
-            Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
-          </p>
+          <div className="flex items-center space-x-3 mb-2">
+            <GraduationCap className="w-8 h-8 text-blue-600" />
+            <h2 className="text-3xl font-bold">Espace Étudiant</h2>
+          </div>
+          <div className="space-y-1">
+            <p className="text-lg font-medium text-gray-700">
+              Bienvenue {candidateInfo?.name}
+            </p>
+            {candidateInfo?.matricule && (
+              <p className="text-sm text-gray-500 font-mono">
+                Matricule: {candidateInfo.matricule}
+              </p>
+            )}
+            <p className="text-muted-foreground">
+              Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
+            </p>
+          </div>
         </div>
         {onReturnToHome && (
           <Button 
@@ -153,9 +186,9 @@ const CandidateDashboard = ({ onReturnToHome }: CandidateDashboardProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Anonymisation</h4>
+                <h4 className="font-medium text-blue-900 mb-2">Identification</h4>
                 <p className="text-sm text-blue-700">
-                  Votre identité sera complètement masquée aux correcteurs grâce à un identifiant anonyme unique.
+                  Votre matricule {candidateInfo?.matricule} permet de vous identifier tout en préservant l'anonymat lors de la correction.
                 </p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
