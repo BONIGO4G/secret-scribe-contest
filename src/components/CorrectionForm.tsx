@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Shield, CheckCircle } from "lucide-react";
+import { ArrowLeft, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import CorrectorDashboard from "./CorrectorDashboard";
 
 interface CorrectionFormProps {
   onClose: () => void;
@@ -130,21 +131,21 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
     );
   }
 
-  // Interface principale du correcteur (après authentification)
+  // Interface principale du correcteur (CorrectorDashboard)
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl mx-auto shadow-2xl border-0 bg-white max-h-[90vh] overflow-y-auto">
-        <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
-          <div className="flex items-center justify-between">
+    <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+      <div className="min-h-screen">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b p-4">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-3">
               <Shield className="w-8 h-8 text-purple-600" />
               <div>
-                <CardTitle className="text-2xl font-bold text-purple-800">
+                <h1 className="text-2xl font-bold text-purple-800">
                   Interface de Correction
-                </CardTitle>
-                <CardDescription className="text-purple-600">
+                </h1>
+                <p className="text-purple-600">
                   Système de correction anonyme des copies
-                </CardDescription>
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -170,31 +171,10 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
               </Button>
             </div>
           </div>
-        </CardHeader>
+        </div>
         
-        <CardContent className="p-6">
-          <div className="text-center py-12">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Accès autorisé - {correctorInfo?.name}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Interface de correction en cours de développement
-            </p>
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-700">
-                L'interface complète de correction sera bientôt disponible avec :
-              </p>
-              <ul className="text-sm text-blue-600 mt-2 space-y-1">
-                <li>• Visualisation des copies anonymisées</li>
-                <li>• Système de notation</li>
-                <li>• Gestion des commentaires</li>
-                <li>• Export des résultats</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <CorrectorDashboard />
+      </div>
     </div>
   );
 };
