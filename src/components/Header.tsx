@@ -1,80 +1,48 @@
 
-import { Button } from "@/components/ui/button";
-import { User, LogOut, ArrowLeft } from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { GraduationCap, LogIn, LogOut, User } from 'lucide-react';
+import { User as UserType } from '../App';
 
 interface HeaderProps {
-  user?: {
-    name: string;
-    role: 'candidate' | 'corrector' | 'admin';
-  } | null;
+  currentUser: UserType | null;
   onLogin: () => void;
   onLogout: () => void;
 }
 
-const Header = ({ user, onLogin, onLogout }: HeaderProps) => {
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'candidate': return 'Candidat';
-      case 'corrector': return 'Correcteur';
-      case 'admin': return 'Administrateur';
-      default: return role;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'candidate': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'corrector': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'admin': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
-
+const Header = ({ currentUser, onLogin, onLogout }: HeaderProps) => {
   return (
-    <header className="border-b bg-white shadow-sm sticky top-0 z-40">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+    <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <GraduationCap className="text-white w-6 h-6" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ConcoursPro
-              </h1>
-              <span className="text-sm text-gray-500 font-medium">Système de correction anonyme</span>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900">ConcoursPro</h1>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {user ? (
+          
+          {currentUser ? (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 bg-gray-50 rounded-xl px-4 py-2 border">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 text-sm">{user.name}</p>
-                  <span className={`text-xs px-2 py-1 rounded-full border font-medium ${getRoleColor(user.role)}`}>
-                    {getRoleLabel(user.role)}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4 text-gray-600" />
+                <span className="text-gray-700 font-medium">{currentUser.name}</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {currentUser.role}
+                </span>
               </div>
               <Button 
-                variant="outline" 
                 onClick={onLogout}
-                className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+                variant="destructive"
+                size="sm"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Déconnexion</span>
+                <LogOut className="w-4 h-4 mr-2" />
+                Déconnexion
               </Button>
             </div>
           ) : (
-            <Button 
-              onClick={onLogin}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 font-medium"
-            >
+            <Button onClick={onLogin} className="bg-gradient-to-r from-blue-500 to-purple-600">
+              <LogIn className="w-4 h-4 mr-2" />
               Se connecter
             </Button>
           )}

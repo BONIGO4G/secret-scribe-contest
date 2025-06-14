@@ -1,172 +1,88 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { User, ArrowLeft, GraduationCap, Shield } from "lucide-react";
-import CorrectionForm from "./CorrectionForm";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { User } from 'lucide-react';
+import { UserRole } from '../App';
 
 interface LoginModalProps {
-  isOpen: boolean;
+  show: boolean;
   onClose: () => void;
-  onLogin: (user: { name: string; role: 'candidate' | 'corrector'; matricule?: string; id?: number }) => void;
+  onLogin: (username: string, role: UserRole) => void;
 }
 
-const LoginModal = ({ isOpen, onClose, onLogin }: LoginModalProps) => {
-  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
-  const [matricule, setMatricule] = useState("");
-  const [matriculeError, setMatriculeError] = useState("");
-  const { toast } = useToast();
+const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
+  const [username, setUsername] = useState('');
+  const [role, setRole] = useState<UserRole | ''>('');
 
-  // Fonction pour valider le format du matricule (8 chiffres + 1 lettre)
-  const validateMatricule = (matricule: string): boolean => {
-    const regex = /^\d{8}[A-Za-z]$/;
-    return regex.test(matricule);
-  };
-
-  const handleStudentLogin = () => {
-    if (!matricule) {
-      setMatriculeError("Veuillez saisir votre matricule");
-      return;
-    }
-
-    if (!validateMatricule(matricule)) {
-      setMatriculeError("Le matricule doit contenir 8 chiffres suivis d'une lettre (ex: 12345678A)");
-      return;
-    }
-
-    setMatriculeError("");
-    toast({
-      title: "Connexion réussie",
-      description: `Bienvenue, matricule ${matricule.toUpperCase()}`,
-    });
-
-    onLogin({ 
-      name: `Étudiant ${matricule.toUpperCase()}`, 
-      role: 'candidate', 
-      matricule: matricule.toUpperCase() 
-    });
-  };
-
-  const handleMatriculeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase();
-    setMatricule(value);
-    if (matriculeError) {
-      setMatriculeError("");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username && role) {
+      onLogin(username, role);
+      setUsername('');
+      setRole('');
     }
   };
-
-  if (!isOpen) return null;
-
-  if (showCorrectionForm) {
-    return <CorrectionForm onClose={() => setShowCorrectionForm(false)} />;
-  }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-lg mx-auto shadow-2xl border-0 bg-gradient-to-br from-white via-white to-blue-50">
-        <CardHeader className="text-center pb-4">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <User className="w-8 h-8 text-white" />
-            </div>
+    <Dialog open={show} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <User className="text-white w-8 h-8" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Accès Plateforme
-          </CardTitle>
-          <CardDescription className="text-lg">
-            Choisissez votre mode d'accès
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <Tabs defaultValue="student" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-xl">
-              <TabsTrigger 
-                value="student" 
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all"
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>Étudiant</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="corrector"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all"
-              >
-                <Shield className="w-4 h-4" />
-                <span>Correcteur</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="student" className="mt-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mb-6 border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-3">Espace Étudiant</h4>
-                <p className="text-sm text-blue-600 mb-4">
-                  Saisissez votre matricule pour accéder à votre espace de dépôt de copies
-                </p>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="matricule" className="text-sm font-medium text-blue-800">
-                      Matricule (8 chiffres + 1 lettre)
-                    </Label>
-                    <Input
-                      id="matricule"
-                      type="text"
-                      value={matricule}
-                      onChange={handleMatriculeChange}
-                      placeholder="12345678A"
-                      maxLength={9}
-                      className={`mt-1 ${matriculeError ? 'border-red-500 focus:border-red-500' : 'border-blue-200 focus:border-blue-500'}`}
-                    />
-                    {matriculeError && (
-                      <p className="mt-1 text-xs text-red-600">{matriculeError}</p>
-                    )}
-                  </div>
-                  
-                  <Button 
-                    onClick={handleStudentLogin}
-                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                  >
-                    Accéder à mon espace
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="corrector" className="mt-6">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg mb-6 border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-3">Espace Correcteur</h4>
-                <p className="text-sm text-purple-600 mb-4">
-                  Système avancé de correction de copies avec gestion des notes
-                </p>
-                <Button 
-                  onClick={() => setShowCorrectionForm(true)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
-                >
-                  Accéder au correcteur de copies
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="flex justify-center pt-4 border-t">
-            <Button 
-              type="button" 
-              variant="ghost" 
-              onClick={onClose}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Retour à l'accueil</span>
+          <DialogTitle className="text-2xl font-bold">Connexion</DialogTitle>
+          <DialogDescription>
+            Accédez à votre espace personnel
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="username" className="text-sm font-medium">
+              Nom d'utilisateur
+            </Label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Votre nom d'utilisateur"
+              required
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="role" className="text-sm font-medium">
+              Rôle
+            </Label>
+            <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Sélectionnez votre rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="candidate">Candidat</SelectItem>
+                <SelectItem value="corrector">Correcteur</SelectItem>
+                <SelectItem value="admin">Administrateur</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
+              Annuler
+            </Button>
+            <Button type="submit" className="flex-1">
+              Se connecter
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
