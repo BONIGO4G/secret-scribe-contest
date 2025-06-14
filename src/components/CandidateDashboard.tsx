@@ -112,12 +112,14 @@ const CandidateDashboard = ({ onReturnToHome, candidateInfo }: CandidateDashboar
           </div>
           <div className="space-y-1">
             <p className="text-lg font-medium text-gray-700">
-              Bienvenue {candidateInfo?.name}
+              Bienvenue
             </p>
             {candidateInfo?.matricule && (
-              <p className="text-sm text-gray-500 font-mono">
-                Matricule: {candidateInfo.matricule}
-              </p>
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
+                  Matricule: {candidateInfo.matricule}
+                </Badge>
+              </div>
             )}
             <p className="text-muted-foreground">
               Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.

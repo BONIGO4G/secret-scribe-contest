@@ -3,8 +3,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { User, ArrowLeft, GraduationCap, Shield } from "lucide-react";
 import CorrectionForm from "./CorrectionForm";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -14,6 +17,47 @@ interface LoginModalProps {
 
 const LoginModal = ({ isOpen, onClose, onLogin }: LoginModalProps) => {
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [matricule, setMatricule] = useState("");
+  const [matriculeError, setMatriculeError] = useState("");
+  const { toast } = useToast();
+
+  // Fonction pour valider le format du matricule (8 chiffres + 1 lettre)
+  const validateMatricule = (matricule: string): boolean => {
+    const regex = /^\d{8}[A-Za-z]$/;
+    return regex.test(matricule);
+  };
+
+  const handleStudentLogin = () => {
+    if (!matricule) {
+      setMatriculeError("Veuillez saisir votre matricule");
+      return;
+    }
+
+    if (!validateMatricule(matricule)) {
+      setMatriculeError("Le matricule doit contenir 8 chiffres suivis d'une lettre (ex: 12345678A)");
+      return;
+    }
+
+    setMatriculeError("");
+    toast({
+      title: "Connexion réussie",
+      description: `Bienvenue, matricule ${matricule.toUpperCase()}`,
+    });
+
+    onLogin({ 
+      name: `Étudiant ${matricule.toUpperCase()}`, 
+      role: 'candidate', 
+      matricule: matricule.toUpperCase() 
+    });
+  };
+
+  const handleMatriculeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setMatricule(value);
+    if (matriculeError) {
+      setMatriculeError("");
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -61,14 +105,35 @@ const LoginModal = ({ isOpen, onClose, onLogin }: LoginModalProps) => {
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mb-6 border border-blue-200">
                 <h4 className="font-semibold text-blue-800 mb-3">Espace Étudiant</h4>
                 <p className="text-sm text-blue-600 mb-4">
-                  Déposez vos copies de concours de manière anonyme et sécurisée
+                  Saisissez votre matricule pour accéder à votre espace de dépôt de copies
                 </p>
-                <Button 
-                  onClick={() => onLogin({ name: 'Étudiant', role: 'candidate' })}
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                >
-                  Accéder à l'espace étudiant
-                </Button>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="matricule" className="text-sm font-medium text-blue-800">
+                      Matricule (8 chiffres + 1 lettre)
+                    </Label>
+                    <Input
+                      id="matricule"
+                      type="text"
+                      value={matricule}
+                      onChange={handleMatriculeChange}
+                      placeholder="12345678A"
+                      maxLength={9}
+                      className={`mt-1 ${matriculeError ? 'border-red-500 focus:border-red-500' : 'border-blue-200 focus:border-blue-500'}`}
+                    />
+                    {matriculeError && (
+                      <p className="mt-1 text-xs text-red-600">{matriculeError}</p>
+                    )}
+                  </div>
+                  
+                  <Button 
+                    onClick={handleStudentLogin}
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                  >
+                    Accéder à mon espace
+                  </Button>
+                </div>
               </div>
             </TabsContent>
             
