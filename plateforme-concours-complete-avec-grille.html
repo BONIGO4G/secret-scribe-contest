@@ -1,0 +1,1237 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConcoursPro - Plateforme de Gestion de Concours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .hover-transform {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-transform:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-bar {
+            width: 0%;
+            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            height: 100%;
+            border-radius: 9999px;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+        
+        .evaluation-grid {
+            display: none;
+        }
+        
+        .evaluation-grid.show {
+            display: block;
+        }
+        
+        .criterion-progress {
+            background: #e5e7eb;
+            border-radius: 9999px;
+            height: 8px;
+        }
+        
+        .criterion-progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+        
+        .score-input {
+            width: 80px;
+            text-align: center;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .score-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">ConcoursPro</h1>
+                </div>
+                
+                <div id="user-info" class="hidden items-center space-x-4">
+                    <span id="username" class="text-gray-700 font-medium"></span>
+                    <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </button>
+                </div>
+                
+                <button id="login-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page d'accueil -->
+    <div id="home-page">
+        <!-- Hero Section -->
+        <section class="gradient-bg text-white py-20">
+            <div class="container mx-auto px-4 text-center">
+                <div class="max-w-5xl mx-auto fade-in">
+                    <div class="inline-flex items-center bg-white bg-opacity-20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6 glass-effect">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        Plateforme 100% sécurisée et anonyme
+                    </div>
+                    
+                    <h1 class="text-6xl font-bold mb-6 leading-tight">
+                        Système de Gestion de 
+                        <span class="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+                            Concours Moderne
+                        </span>
+                    </h1>
+                    
+                    <p class="text-xl mb-12 max-w-3xl mx-auto leading-relaxed opacity-90">
+                        Plateforme professionnelle pour la gestion complète des concours et examens avec 
+                        anonymisation automatique, interface intuitive et sécurité renforcée.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                        <button id="cta-login" class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-medium rounded-lg shadow-lg hover:shadow-xl transition-all">
+                            Accéder à la plateforme
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                        
+                        <button class="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg rounded-lg transition-all">
+                            Découvrir les fonctionnalités
+                        </button>
+                    </div>
+
+                    <!-- Stats rapides -->
+                    <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold mb-2">100%</div>
+                            <div class="text-sm opacity-80">Anonymisation</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold mb-2">24/7</div>
+                            <div class="text-sm opacity-80">Disponibilité</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold mb-2">SSL</div>
+                            <div class="text-sm opacity-80">Sécurisé</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="container mx-auto px-4 py-20 bg-white">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">
+                    Fonctionnalités Avancées
+                </h3>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Une suite complète d'outils professionnels pour la gestion moderne des concours
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center hover-transform bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border-0">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-blue-800 mb-3">Anonymisation Totale</h4>
+                    <p class="text-base text-blue-700">
+                        Génération automatique d'identifiants anonymes avec chiffrement avancé pour chaque copie
+                    </p>
+                </div>
+
+                <div class="text-center hover-transform bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border-0">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-file-upload text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-green-800 mb-3">Upload Intelligent</h4>
+                    <p class="text-base text-green-700">
+                        Dépôt sécurisé de documents PDF/ZIP avec validation automatique et sauvegarde cloud
+                    </p>
+                </div>
+
+                <div class="text-center hover-transform bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border-0">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-users text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-purple-800 mb-3">Gestion Multi-Rôles</h4>
+                    <p class="text-base text-purple-700">
+                        Interfaces dédiées et optimisées pour candidats, correcteurs et administrateurs
+                    </p>
+                </div>
+
+                <div class="text-center hover-transform bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-2xl border-0">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-chart-bar text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-orange-800 mb-3">Analytics Avancés</h4>
+                    <p class="text-base text-orange-700">
+                        Rapports détaillés, statistiques en temps réel et export de données personnalisables
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process -->
+        <section class="bg-gradient-to-r from-gray-50 to-blue-50 py-20">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h3 class="text-4xl font-bold text-gray-900 mb-4">
+                        Processus Simplifié
+                    </h3>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Un workflow optimisé en 3 étapes pour une expérience utilisateur fluide
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="text-center relative">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                            1
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-lg border">
+                            <div class="flex justify-center mb-4">
+                                <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-4 text-gray-800">Dépôt Sécurisé</h4>
+                            <p class="text-gray-600 leading-relaxed">
+                                Les candidats téléchargent leurs copies via notre interface sécurisée avec validation automatique
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center relative">
+                        <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                            2
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-lg border">
+                            <div class="flex justify-center mb-4">
+                                <i class="fas fa-lock text-green-500 text-2xl"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-4 text-gray-800">Anonymisation</h4>
+                            <p class="text-gray-600 leading-relaxed">
+                                Le système génère instantanément des identifiants anonymes avec chiffrement de niveau bancaire
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center relative">
+                        <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                            3
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-lg border">
+                            <div class="flex justify-center mb-4">
+                                <i class="fas fa-check-circle text-purple-500 text-2xl"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-4 text-gray-800">Correction Impartiale</h4>
+                            <p class="text-gray-600 leading-relaxed">
+                                Les correcteurs évaluent les copies en toute objectivité sans connaître l'identité des candidats
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Final -->
+        <section class="container mx-auto px-4 py-20 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h3 class="text-4xl font-bold text-gray-900 mb-6">
+                    Prêt à révolutionner vos concours ?
+                </h3>
+                <p class="text-xl text-gray-600 mb-8">
+                    Rejoignez les établissements qui font confiance à ConcoursPro
+                </p>
+                <button id="final-cta" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-medium shadow-xl hover:shadow-2xl transition-all rounded-lg">
+                    Commencer maintenant
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Dashboard Candidat -->
+    <div id="candidate-dashboard" class="hidden">
+        <div class="container mx-auto px-4 py-8">
+            <div class="mb-8 flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Espace Candidat</h2>
+                    <p class="text-gray-600">
+                        Déposez vos copies pour le concours. Un identifiant anonyme sera généré automatiquement.
+                    </p>
+                </div>
+                <button id="candidate-return" class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Retour à l'accueil</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Zone d'upload -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <h3 class="text-xl font-semibold flex items-center">
+                                <i class="fas fa-upload mr-2 text-blue-500"></i>
+                                Déposer une copie
+                            </h3>
+                            <p class="text-gray-600 mt-1">
+                                Formats acceptés : PDF, ZIP (max 10 MB)
+                            </p>
+                        </div>
+                        <div class="p-6">
+                            <div class="file-upload-area rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-lg font-medium mb-2">Cliquez pour sélectionner un fichier</p>
+                                <p class="text-sm text-gray-500">ou glissez-déposez votre fichier ici</p>
+                                <input type="file" id="file-input" accept=".pdf,.zip" class="hidden">
+                                
+                                <div id="upload-progress" class="hidden mt-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="progress-bar bg-blue-500 h-2 rounded-full"></div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">Téléchargement en cours...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations importantes -->
+                <div>
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <h3 class="text-xl font-semibold">Informations importantes</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-medium text-blue-900 mb-2">Anonymisation</h4>
+                                <p class="text-sm text-blue-700">
+                                    Votre identité sera complètement masquée aux correcteurs grâce à un identifiant anonyme unique.
+                                </p>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-medium text-green-900 mb-2">Sécurité</h4>
+                                <p class="text-sm text-green-700">
+                                    Toutes les données sont chiffrées et stockées de manière sécurisée.
+                                </p>
+                            </div>
+                            <div class="p-4 bg-orange-50 rounded-lg">
+                                <h4 class="font-medium text-orange-900 mb-2">Délai</h4>
+                                <p class="text-sm text-orange-700">
+                                    Date limite de dépôt : 15 Décembre 2024 à 23h59
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des copies déposées -->
+            <div id="submissions-list" class="mt-8 hidden">
+                <div class="bg-white rounded-lg shadow-lg border">
+                    <div class="p-6 border-b">
+                        <h3 class="text-xl font-semibold">Mes copies déposées</h3>
+                        <p class="text-gray-600 mt-1">
+                            Historique de vos dépôts avec les identifiants anonymes
+                        </p>
+                    </div>
+                    <div class="p-6" id="submissions-container">
+                        <!-- Les soumissions seront ajoutées ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Correcteur -->
+    <div id="corrector-dashboard" class="hidden">
+        <div class="container mx-auto px-4 py-8">
+            <div class="mb-8 flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Espace Correcteur</h2>
+                    <p class="text-gray-600">
+                        Interface de correction anonyme pour les copies de concours
+                    </p>
+                </div>
+                <button id="corrector-return" class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Retour à l'accueil</span>
+                </button>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg border">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Copies à corriger</p>
+                            <p class="text-2xl font-bold text-gray-900">12</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg border">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-check text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Corrigées</p>
+                            <p class="text-2xl font-bold text-gray-900">8</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg border">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-orange-100 rounded-lg">
+                            <i class="fas fa-clock text-orange-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">En cours</p>
+                            <p class="text-2xl font-bold text-gray-900">4</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg border">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Note moyenne</p>
+                            <p class="text-2xl font-bold text-gray-900">14.2</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barre de progression globale -->
+            <div class="bg-white rounded-lg shadow-lg border mb-8">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-medium">Progression globale</h3>
+                        <span class="text-sm text-gray-600">8/12</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style="width: 67%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des copies -->
+            <div class="bg-white rounded-lg shadow-lg border">
+                <div class="p-6 border-b">
+                    <h3 class="text-xl font-semibold">Copies à corriger</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <!-- Copie 1 -->
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                                    <div>
+                                        <p class="font-medium">ANON-X7K9M2P4Q</p>
+                                        <p class="text-sm text-gray-600">Reçu le 10/12/2024 à 14:30</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        En attente
+                                    </span>
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="openEvaluationGrid('ANON-X7K9M2P4Q', 'copie1.pdf', '10/12/2024 à 14:30')">
+                                        <i class="fas fa-eye mr-2"></i>Corriger
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Copie 2 -->
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                                    <div>
+                                        <p class="font-medium">ANON-B8L5N1W7E</p>
+                                        <p class="text-sm text-gray-600">Reçu le 10/12/2024 à 16:45</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Corrigé - 16/20
+                                    </span>
+                                    <button class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors" onclick="openEvaluationGrid('ANON-B8L5N1W7E', 'copie2.pdf', '10/12/2024 à 16:45', 16, 'Très bon travail avec une argumentation solide.')">
+                                        <i class="fas fa-eye mr-2"></i>Voir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Copie 3 -->
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                                    <div>
+                                        <p class="font-medium">ANON-C3F6H9J2K</p>
+                                        <p class="text-sm text-gray-600">Reçu le 11/12/2024 à 09:15</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                        <i class="fas fa-edit mr-1"></i>
+                                        En cours
+                                    </span>
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="openEvaluationGrid('ANON-C3F6H9J2K', 'copie3.pdf', '11/12/2024 à 09:15', 12, 'Travail en cours de correction.')">
+                                        <i class="fas fa-edit mr-2"></i>Continuer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille d'Évaluation -->
+    <div id="evaluation-grid" class="evaluation-grid">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- En-tête avec informations de la copie -->
+                <div class="bg-white rounded-lg shadow-lg border p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold">Correction de la copie</h2>
+                        <button id="close-evaluation" class="text-gray-500 hover:text-gray-700 p-2">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-lg font-mono" id="eval-copy-id">ANON-X7K9M2P4Q</p>
+                            <p class="text-gray-600">Fichier: <span id="eval-filename">copie1.pdf</span> • Reçu le <span id="eval-date">10/12/2024 à 14:30</span></p>
+                        </div>
+                        <button id="back-to-list" class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Retour à la liste</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Score total et progression -->
+                <div class="bg-white rounded-lg shadow-lg border p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Score total</h3>
+                        <div class="text-3xl font-bold">
+                            <span id="total-score">0</span>/<span id="max-score">20</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div id="total-progress" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        Équivalent sur 20: <span id="score-on-20">0.0</span>/20
+                    </p>
+                </div>
+
+                <!-- Grille d'évaluation par critères -->
+                <div class="space-y-4">
+                    <!-- Critère 1: Contenu -->
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Contenu et connaissances</h4>
+                                <span class="text-sm text-gray-600">Max: 8 pts</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">Maîtrise du sujet, pertinence des réponses, exactitude des connaissances</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('content', -0.5)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="content-score" class="score-input" min="0" max="8" step="0.5" value="0" onchange="updateCriterionScore('content', this.value)">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('content', 0.5)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="criterion-progress">
+                                        <div id="content-progress" class="criterion-progress-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium min-w-[60px]">
+                                    <span id="content-display">0.0</span>/8
+                                </span>
+                            </div>
+                            <textarea id="content-comment" placeholder="Commentaire pour le contenu et les connaissances..." class="w-full p-3 border border-gray-300 rounded-lg min-h-[60px] resize-y"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Critère 2: Méthodologie -->
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Méthodologie</h4>
+                                <span class="text-sm text-gray-600">Max: 6 pts</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">Structure, argumentation, démarche analytique</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('methodology', -0.5)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="methodology-score" class="score-input" min="0" max="6" step="0.5" value="0" onchange="updateCriterionScore('methodology', this.value)">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('methodology', 0.5)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="criterion-progress">
+                                        <div id="methodology-progress" class="criterion-progress-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium min-w-[60px]">
+                                    <span id="methodology-display">0.0</span>/6
+                                </span>
+                            </div>
+                            <textarea id="methodology-comment" placeholder="Commentaire pour la méthodologie..." class="w-full p-3 border border-gray-300 rounded-lg min-h-[60px] resize-y"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Critère 3: Présentation -->
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Présentation et expression</h4>
+                                <span class="text-sm text-gray-600">Max: 4 pts</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">Clarté de l'expression, orthographe, mise en forme</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('presentation', -0.5)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="presentation-score" class="score-input" min="0" max="4" step="0.5" value="0" onchange="updateCriterionScore('presentation', this.value)">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('presentation', 0.5)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="criterion-progress">
+                                        <div id="presentation-progress" class="criterion-progress-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium min-w-[60px]">
+                                    <span id="presentation-display">0.0</span>/4
+                                </span>
+                            </div>
+                            <textarea id="presentation-comment" placeholder="Commentaire pour la présentation et l'expression..." class="w-full p-3 border border-gray-300 rounded-lg min-h-[60px] resize-y"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Critère 4: Consignes -->
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="p-6 border-b">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Respect des consignes</h4>
+                                <span class="text-sm text-gray-600">Max: 2 pts</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">Suivi des instructions, respect du format demandé</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('instructions', -0.5)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="instructions-score" class="score-input" min="0" max="2" step="0.5" value="0" onchange="updateCriterionScore('instructions', this.value)">
+                                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded" onclick="adjustScore('instructions', 0.5)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="criterion-progress">
+                                        <div id="instructions-progress" class="criterion-progress-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium min-w-[60px]">
+                                    <span id="instructions-display">0.0</span>/2
+                                </span>
+                            </div>
+                            <textarea id="instructions-comment" placeholder="Commentaire pour le respect des consignes..." class="w-full p-3 border border-gray-300 rounded-lg min-h-[60px] resize-y"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commentaires généraux -->
+                <div class="bg-white rounded-lg shadow-lg border">
+                    <div class="p-6 border-b">
+                        <h3 class="text-xl font-semibold">Commentaires généraux</h3>
+                        <p class="text-gray-600 mt-1">Observations globales sur la copie, conseils pour l'amélioration</p>
+                    </div>
+                    <div class="p-6">
+                        <textarea id="general-comments" placeholder="Rédigez vos commentaires généraux sur cette copie..." class="w-full p-3 border border-gray-300 rounded-lg min-h-[120px] resize-y"></textarea>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-between items-center">
+                    <button id="cancel-evaluation" class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors">
+                        <i class="fas fa-times"></i>
+                        <span>Annuler</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Note finale</p>
+                            <p class="text-2xl font-bold">
+                                <span id="final-score">0.0</span>/20
+                            </p>
+                        </div>
+                        
+                        <button id="save-evaluation" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-all shadow-lg">
+                            <i class="fas fa-save"></i>
+                            <span>Enregistrer la correction</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de connexion -->
+    <div id="login-modal" class="modal">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Connexion</h2>
+                <p class="text-gray-600">Accédez à votre espace personnel</p>
+            </div>
+
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur</label>
+                    <input type="text" id="username-input" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" placeholder="Votre nom d'utilisateur" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
+                    <select id="role-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" required>
+                        <option value="">Sélectionnez votre rôle</option>
+                        <option value="candidate">Candidat</option>
+                        <option value="corrector">Correcteur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancel-login" class="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-lg font-medium transition-all">
+                        Se connecter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center">
+            <div id="toast-icon" class="mr-3"></div>
+            <div>
+                <div id="toast-title" class="font-medium text-gray-900"></div>
+                <div id="toast-message" class="text-sm text-gray-600"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let submissions = [];
+        let currentCopyId = null;
+        let evaluationData = {
+            content: { score: 0, comment: '', max: 8 },
+            methodology: { score: 0, comment: '', max: 6 },
+            presentation: { score: 0, comment: '', max: 4 },
+            instructions: { score: 0, comment: '', max: 2 }
+        };
+
+        // Éléments DOM
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfo = document.getElementById('user-info');
+        const loginModal = document.getElementById('login-modal');
+        const loginForm = document.getElementById('login-form');
+        const cancelLogin = document.getElementById('cancel-login');
+        const homePage = document.getElementById('home-page');
+        const candidateDashboard = document.getElementById('candidate-dashboard');
+        const correctorDashboard = document.getElementById('corrector-dashboard');
+        const evaluationGrid = document.getElementById('evaluation-grid');
+        const fileInput = document.getElementById('file-input');
+        const uploadProgress = document.getElementById('upload-progress');
+        const submissionsList = document.getElementById('submissions-list');
+        const submissionsContainer = document.getElementById('submissions-container');
+
+        // Fonctions utilitaires
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-500 text-xl"></i>',
+                error: '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>',
+                warning: '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>'
+            };
+
+            toastIcon.innerHTML = icons[type] || icons.success;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 4000);
+        }
+
+        function showModal(modal) {
+            modal.classList.add('show');
+        }
+
+        function hideModal(modal) {
+            modal.classList.remove('show');
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('[id$="-page"], [id$="-dashboard"], .evaluation-grid').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('show');
+            });
+            
+            if (pageId === 'evaluation-grid') {
+                document.getElementById(pageId).classList.add('show');
+                document.getElementById(pageId).classList.remove('hidden');
+            } else {
+                document.getElementById(pageId).classList.remove('hidden');
+            }
+        }
+
+        function generateAnonymousId() {
+            return 'ANON-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        // Fonctions de la grille d'évaluation
+        function openEvaluationGrid(copyId, filename, date, initialScore = 0, initialComments = '') {
+            currentCopyId = copyId;
+            
+            // Remplir les informations de la copie
+            document.getElementById('eval-copy-id').textContent = copyId;
+            document.getElementById('eval-filename').textContent = filename;
+            document.getElementById('eval-date').textContent = date;
+            
+            // Réinitialiser ou charger les données
+            if (initialScore > 0) {
+                // Répartir proportionnellement le score
+                const totalMax = 20;
+                const proportion = initialScore / totalMax;
+                
+                evaluationData.content.score = Math.round(evaluationData.content.max * proportion * 2) / 2;
+                evaluationData.methodology.score = Math.round(evaluationData.methodology.max * proportion * 2) / 2;
+                evaluationData.presentation.score = Math.round(evaluationData.presentation.max * proportion * 2) / 2;
+                evaluationData.instructions.score = Math.round(evaluationData.instructions.max * proportion * 2) / 2;
+                
+                document.getElementById('general-comments').value = initialComments || '';
+            } else {
+                // Réinitialiser
+                Object.keys(evaluationData).forEach(key => {
+                    evaluationData[key].score = 0;
+                    evaluationData[key].comment = '';
+                });
+                document.getElementById('general-comments').value = '';
+            }
+            
+            // Mettre à jour l'affichage
+            updateAllCriteria();
+            showPage('evaluation-grid');
+        }
+
+        function adjustScore(criterion, delta) {
+            const newScore = Math.max(0, Math.min(evaluationData[criterion].max, evaluationData[criterion].score + delta));
+            evaluationData[criterion].score = newScore;
+            updateCriterionDisplay(criterion);
+            updateTotalScore();
+        }
+
+        function updateCriterionScore(criterion, value) {
+            const score = Math.max(0, Math.min(evaluationData[criterion].max, parseFloat(value) || 0));
+            evaluationData[criterion].score = score;
+            updateCriterionDisplay(criterion);
+            updateTotalScore();
+        }
+
+        function updateCriterionDisplay(criterion) {
+            const score = evaluationData[criterion].score;
+            const max = evaluationData[criterion].max;
+            const percentage = (score / max) * 100;
+            
+            document.getElementById(`${criterion}-score`).value = score;
+            document.getElementById(`${criterion}-display`).textContent = score.toFixed(1);
+            document.getElementById(`${criterion}-progress`).style.width = percentage + '%';
+        }
+
+        function updateTotalScore() {
+            const total = Object.values(evaluationData).reduce((sum, item) => sum + item.score, 0);
+            const maxTotal = Object.values(evaluationData).reduce((sum, item) => sum + item.max, 0);
+            const percentage = (total / maxTotal) * 100;
+            const scoreOn20 = (total / maxTotal) * 20;
+            
+            document.getElementById('total-score').textContent = total.toFixed(1);
+            document.getElementById('max-score').textContent = maxTotal;
+            document.getElementById('score-on-20').textContent = scoreOn20.toFixed(1);
+            document.getElementById('final-score').textContent = scoreOn20.toFixed(1);
+            document.getElementById('total-progress').style.width = percentage + '%';
+        }
+
+        function updateAllCriteria() {
+            Object.keys(evaluationData).forEach(criterion => {
+                updateCriterionDisplay(criterion);
+            });
+            updateTotalScore();
+        }
+
+        function saveEvaluation() {
+            // Collecter tous les commentaires
+            Object.keys(evaluationData).forEach(criterion => {
+                const commentElement = document.getElementById(`${criterion}-comment`);
+                if (commentElement) {
+                    evaluationData[criterion].comment = commentElement.value;
+                }
+            });
+            
+            const generalComments = document.getElementById('general-comments').value;
+            const totalScore = Object.values(evaluationData).reduce((sum, item) => sum + item.score, 0);
+            const finalScore = ((totalScore / 20) * 20).toFixed(1);
+            
+            // Construire le commentaire complet
+            let fullComments = [];
+            if (generalComments.trim()) {
+                fullComments.push(generalComments);
+            }
+            
+            Object.keys(evaluationData).forEach(criterion => {
+                if (evaluationData[criterion].comment.trim()) {
+                    const criterionNames = {
+                        content: 'Contenu et connaissances',
+                        methodology: 'Méthodologie',
+                        presentation: 'Présentation et expression',
+                        instructions: 'Respect des consignes'
+                    };
+                    fullComments.push(`${criterionNames[criterion]}: ${evaluationData[criterion].comment}`);
+                }
+            });
+            
+            showToast('Correction sauvegardée', `Note attribuée: ${finalScore}/20`);
+            showPage('corrector-dashboard');
+        }
+
+        function addSubmission(filename) {
+            const anonymousId = generateAnonymousId();
+            const submission = {
+                id: Date.now().toString(),
+                filename: filename,
+                uploadDate: new Date().toLocaleString('fr-FR'),
+                status: 'uploaded',
+                anonymousId: anonymousId
+            };
+
+            submissions.unshift(submission);
+            renderSubmissions();
+            showToast('Copie envoyée avec succès', `Identifiant anonyme généré : ${anonymousId}`);
+        }
+
+        function renderSubmissions() {
+            if (submissions.length === 0) {
+                submissionsList.classList.add('hidden');
+                return;
+            }
+
+            submissionsList.classList.remove('hidden');
+            submissionsContainer.innerHTML = submissions.map(submission => `
+                <div class="flex items-center justify-between p-4 border rounded-lg mb-4">
+                    <div class="flex items-center space-x-4">
+                        <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                        <div>
+                            <p class="font-medium">${submission.filename}</p>
+                            <p class="text-sm text-gray-600">Déposé le ${submission.uploadDate}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="font-mono text-sm font-medium">${submission.anonymousId}</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Reçu
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Gestion de la connexion
+        function handleLogin(username, role) {
+            currentUser = { name: username, role: role };
+            
+            // Mise à jour de l'interface
+            loginBtn.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            userInfo.classList.add('flex');
+            document.getElementById('username').textContent = username;
+            
+            // Affichage du dashboard approprié
+            if (role === 'candidate') {
+                showPage('candidate-dashboard');
+            } else if (role === 'corrector') {
+                showPage('corrector-dashboard');
+            }
+            
+            hideModal(loginModal);
+            showToast('Connexion réussie', `Bienvenue ${username} !`);
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            submissions = [];
+            
+            // Réinitialisation de l'interface
+            loginBtn.classList.remove('hidden');
+            userInfo.classList.add('hidden');
+            userInfo.classList.remove('flex');
+            
+            showPage('home-page');
+            showToast('Déconnexion', 'Vous avez été déconnecté avec succès');
+        }
+
+        function handleReturnToHome() {
+            showPage('home-page');
+        }
+
+        // Event listeners
+        loginBtn.addEventListener('click', () => showModal(loginModal));
+        document.getElementById('cta-login').addEventListener('click', () => showModal(loginModal));
+        document.getElementById('final-cta').addEventListener('click', () => showModal(loginModal));
+        logoutBtn.addEventListener('click', handleLogout);
+        cancelLogin.addEventListener('click', () => hideModal(loginModal));
+        document.getElementById('candidate-return').addEventListener('click', handleReturnToHome);
+        document.getElementById('corrector-return').addEventListener('click', handleReturnToHome);
+
+        // Event listeners pour la grille d'évaluation
+        document.getElementById('close-evaluation').addEventListener('click', () => showPage('corrector-dashboard'));
+        document.getElementById('back-to-list').addEventListener('click', () => showPage('corrector-dashboard'));
+        document.getElementById('cancel-evaluation').addEventListener('click', () => showPage('corrector-dashboard'));
+        document.getElementById('save-evaluation').addEventListener('click', saveEvaluation);
+
+        // Fermeture de la modal en cliquant à l'extérieur
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                hideModal(loginModal);
+            }
+        });
+
+        // Gestion du formulaire de connexion
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username-input').value;
+            const role = document.getElementById('role-select').value;
+            
+            if (username && role) {
+                handleLogin(username, role);
+                loginForm.reset();
+            }
+        });
+
+        // Gestion de l'upload de fichiers
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Vérification du type de fichier
+            if (!file.type.includes('pdf') && !file.name.endsWith('.zip')) {
+                showToast('Format non supporté', 'Seuls les fichiers PDF et ZIP sont acceptés.', 'error');
+                return;
+            }
+
+            // Vérification de la taille (10 MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Fichier trop volumineux', 'La taille maximale autorisée est de 10 MB.', 'error');
+                return;
+            }
+
+            // Simulation d'upload
+            uploadProgress.classList.remove('hidden');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    setTimeout(() => {
+                        uploadProgress.classList.add('hidden');
+                        addSubmission(file.name);
+                        fileInput.value = '';
+                        progressBar.style.width = '0%';
+                    }, 500);
+                }
+                progressBar.style.width = progress + '%';
+            }, 200);
+        });
+
+        // Gestion du drag & drop
+        const fileUploadArea = document.querySelector('.file-upload-area');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, () => {
+                fileUploadArea.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, () => {
+                fileUploadArea.classList.remove('dragover');
+            }, false);
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                // Simuler la sélection du fichier
+                const event = new Event('change');
+                fileInput.files = files;
+                fileInput.dispatchEvent(event);
+            }
+        });
+
+        // Animation au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.querySelector('.fade-in').style.opacity = '1';
+            }, 100);
+        });
+    </script>
+
+</body>
+</html>
