@@ -1,15 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, User, Clock, CheckCircle, ArrowLeft, Upload, BarChart3 } from "lucide-react";
+import { FileText, ArrowLeft, Upload, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/services/apiService";
 import EvaluationGrid from "./EvaluationGrid";
 import ExportReports from "./ExportReports";
+import CorrectorStats from "./CorrectorStats";
+import CorrectorProgress from "./CorrectorProgress";
+import CopiesList from "./CopiesList";
+import UploadInterface from "./UploadInterface";
 
 interface Copy {
   id: string;
@@ -131,19 +132,6 @@ const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
     setSelectedCopy(null);
   };
 
-  const getStatusBadge = (status: Copy['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />À corriger</Badge>;
-      case 'in_progress':
-        return <Badge variant="secondary"><User className="w-3 h-3 mr-1" />En cours</Badge>;
-      case 'corrected':
-        return <Badge variant="default"><CheckCircle className="w-3 h-3 mr-1" />Terminé</Badge>;
-    }
-  };
-
-  const correctedCount = copies.filter(c => c.status === 'corrected').length;
-  const progressPercentage = copies.length > 0 ? (correctedCount / copies.length) * 100 : 0;
   const correctedCopies = copies.filter(c => c.status === 'corrected' && c.score !== undefined).map(c => ({
     id: c.id,
     anonymousId: c.anonymousId,
@@ -210,54 +198,10 @@ const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Copies à corriger</p>
-                <p className="text-2xl font-bold">{copies.filter(c => c.status === 'pending').length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">En cours</p>
-                <p className="text-2xl font-bold">{copies.filter(c => c.status === 'in_progress').length}</p>
-              </div>
-              <User className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Corrigées</p>
-                <p className="text-2xl font-bold">{correctedCount}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CorrectorStats copies={copies} />
 
       {/* Barre de progression */}
-      <Card className="mb-8">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Progression globale</h3>
-            <span className="text-sm text-muted-foreground">{correctedCount}/{copies.length}</span>
-          </div>
-          <Progress value={progressPercentage} className="w-full" />
-        </CardContent>
-      </Card>
+      <CorrectorProgress copies={copies} />
 
       {/* Interface à onglets */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -277,74 +221,11 @@ const CorrectorDashboard = ({ onReturnToHome }: CorrectorDashboardProps) => {
         </TabsList>
 
         <TabsContent value="copies" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Copies assignées</CardTitle>
-              <CardDescription>
-                Toutes les identités sont anonymisées pour garantir l'impartialité
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {copies.map((copy) => (
-                  <div key={copy.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="w-8 h-8 text-blue-600" />
-                      <div>
-                        <p className="font-mono text-sm font-medium">{copy.anonymousId}</p>
-                        <p className="text-sm text-muted-foreground">{copy.filename}</p>
-                        <p className="text-sm text-muted-foreground">{copy.uploadDate}</p>
-                        {copy.score !== undefined && (
-                          <p className="text-sm font-medium text-green-600">Note: {copy.score}/20</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      {getStatusBadge(copy.status)}
-                      <Button 
-                        size="sm" 
-                        onClick={() => startCorrection(copy)}
-                        variant={copy.status === 'corrected' ? 'outline' : 'default'}
-                      >
-                        {copy.status === 'corrected' ? 'Voir/Modifier' : 'Corriger'}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {copies.length === 0 && (
-                  <div className="text-center py-12">
-                    <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      Aucune copie à corriger pour le moment
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CopiesList copies={copies} onStartCorrection={startCorrection} />
         </TabsContent>
 
         <TabsContent value="upload" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Interface d'upload</CardTitle>
-              <CardDescription>
-                Téléchargez des documents PDF ou ZIP contenant les copies à corriger
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-                <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">Fonctionnalité en développement</h3>
-                <p className="text-muted-foreground mb-4">
-                  L'interface d'upload pour les documents PDF et ZIP sera bientôt disponible
-                </p>
-                <Button disabled variant="outline">
-                  Sélectionner des fichiers
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <UploadInterface />
         </TabsContent>
 
         <TabsContent value="reports" className="mt-6">
