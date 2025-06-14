@@ -15,16 +15,81 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
-  const [username, setUsername] = useState('');
+  const [matricule, setMatricule] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
+  const [error, setError] = useState('');
+
+  // Validation du matricule selon le rôle
+  const validateMatricule = (matricule: string, role: UserRole): boolean => {
+    if (role === 'candidate') {
+      // Matricule candidat : exactement 8 chiffres
+      const regex = /^\d{8}$/;
+      return regex.test(matricule);
+    } else if (role === 'corrector') {
+      // Matricule de service : au minimum 6 caractères alphanumériques
+      const regex = /^[A-Za-z0-9]{6,}$/;
+      return regex.test(matricule);
+    } else if (role === 'admin') {
+      // Admin : pas de restriction particulière
+      return matricule.length >= 4;
+    }
+    return false;
+  };
+
+  const getMatriculeError = (role: UserRole): string => {
+    if (role === 'candidate') {
+      return 'Le matricule candidat doit contenir exactement 8 chiffres';
+    } else if (role === 'corrector') {
+      return 'Le matricule de service doit contenir au minimum 6 caractères alphanumériques';
+    } else if (role === 'admin') {
+      return 'Le matricule administrateur doit contenir au minimum 4 caractères';
+    }
+    return '';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && role) {
-      onLogin(username, role);
-      setUsername('');
-      setRole('');
+    setError('');
+
+    if (!matricule || !role) {
+      setError('Veuillez remplir tous les champs');
+      return;
     }
+
+    if (!validateMatricule(matricule, role)) {
+      setError(getMatriculeError(role));
+      return;
+    }
+
+    onLogin(matricule, role);
+    setMatricule('');
+    setRole('');
+    setError('');
+  };
+
+  const handleMatriculeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = role === 'corrector' ? e.target.value.toUpperCase() : e.target.value;
+    setMatricule(value);
+    if (error) {
+      setError('');
+    }
+  };
+
+  const handleRoleChange = (newRole: UserRole) => {
+    setRole(newRole);
+    setMatricule('');
+    setError('');
+  };
+
+  const getPlaceholder = () => {
+    if (role === 'candidate') {
+      return '12345678';
+    } else if (role === 'corrector') {
+      return 'PROF123456';
+    } else if (role === 'admin') {
+      return 'ADMIN01';
+    }
+    return 'Votre matricule';
   };
 
   return (
@@ -42,25 +107,10 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="username" className="text-sm font-medium">
-              Nom d'utilisateur
-            </Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Votre nom d'utilisateur"
-              required
-              className="mt-1"
-            />
-          </div>
-
-          <div>
             <Label htmlFor="role" className="text-sm font-medium">
               Rôle
             </Label>
-            <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
+            <Select value={role} onValueChange={handleRoleChange}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Sélectionnez votre rôle" />
               </SelectTrigger>
@@ -71,6 +121,40 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label htmlFor="matricule" className="text-sm font-medium">
+              {role === 'candidate' ? 'Matricule Candidat' : 
+               role === 'corrector' ? 'Matricule de Service' : 
+               'Matricule'}
+            </Label>
+            <Input
+              id="matricule"
+              type="text"
+              value={matricule}
+              onChange={handleMatriculeChange}
+              placeholder={getPlaceholder()}
+              required
+              className={`mt-1 ${error ? 'border-red-500 focus:border-red-500' : ''}`}
+              maxLength={role === 'candidate' ? 8 : undefined}
+            />
+            {role === 'candidate' && (
+              <p className="mt-1 text-xs text-gray-500">
+                Exactement 8 chiffres requis
+              </p>
+            )}
+            {role === 'corrector' && (
+              <p className="mt-1 text-xs text-gray-500">
+                Minimum 6 caractères alphanumériques
+              </p>
+            )}
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
