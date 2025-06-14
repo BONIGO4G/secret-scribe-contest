@@ -1,29 +1,14 @@
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Download, FileBarChart } from "lucide-react";
+import { ArrowLeft, Upload, Download, FileText, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Fonction pour générer un ID unique pour chaque copie
-const generateUniqueId = () => {
-  const timestamp = Date.now().toString(36);
-  const randomPart = Math.random().toString(36).substr(2, 5);
-  return `${timestamp}-${randomPart}`.toUpperCase();
-};
-
-// Fonction pour valider le format du matricule (8 chiffres + 1 lettre)
-const validateMatricule = (matricule: string) => {
-  const regex = /^\d{8}[A-Za-z]$/;
-  return regex.test(matricule);
-};
-
 interface CorrectionFormProps {
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
@@ -180,13 +165,25 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl">
-        <CardHeader className="bg-slate-700 text-white">
-          <CardTitle className="text-2xl text-center">Correcteur de Copies</CardTitle>
-          <CardDescription className="text-slate-200 text-center">
-            Système de gestion des copies d'examen
-          </CardDescription>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-4xl mx-auto shadow-2xl border-0 bg-white max-h-[90vh] overflow-y-auto">
+        <CardHeader className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold">Correcteur de Copies</CardTitle>
+              <CardDescription className="text-slate-200 mt-1">
+                Système de gestion des copies d'examen
+              </CardDescription>
+            </div>
+            <Button 
+              variant="ghost" 
+              onClick={onClose}
+              className="text-white hover:bg-white/20 flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Retour à l'accueil</span>
+            </Button>
+          </div>
         </CardHeader>
         
         <CardContent className="p-6">
@@ -385,7 +382,7 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
                 variant="outline"
                 className="bg-slate-600 hover:bg-slate-700 text-white"
               >
-                <FileBarChart className="w-4 h-4 mr-2" />
+                <BarChart3 className="w-4 h-4 mr-2" />
                 Générer PDF
               </Button>
             </div>
@@ -433,6 +430,19 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
       <canvas ref={canvasRef} style={{display: 'none'}} />
     </div>
   );
+};
+
+// Fonction pour générer un ID unique pour chaque copie
+const generateUniqueId = () => {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substr(2, 5);
+  return `${timestamp}-${randomPart}`.toUpperCase();
+};
+
+// Fonction pour valider le format du matricule (8 chiffres + 1 lettre)
+const validateMatricule = (matricule: string) => {
+  const regex = /^\d{8}[A-Za-z]$/;
+  return regex.test(matricule);
 };
 
 export default CorrectionForm;
