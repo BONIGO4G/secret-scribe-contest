@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CorrectorDashboard from "./CorrectorDashboard";
+import { Copy } from "../App";
 
 interface CorrectionFormProps {
   onClose: () => void;
@@ -18,6 +18,7 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
   const [matriculeError, setMatriculeError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctorInfo, setCorrectorInfo] = useState<{name: string; matricule: string} | null>(null);
+  const [copies] = useState<Copy[]>([]);
   const { toast } = useToast();
 
   // Fonction pour valider le format du matricule de service
@@ -64,6 +65,10 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
     setIsAuthenticated(false);
     setCorrectorInfo(null);
     setMatriculeService("");
+  };
+
+  const handleOpenEvaluation = (copy: Copy) => {
+    console.log("Opening evaluation for copy:", copy);
   };
 
   // Interface d'authentification
@@ -173,7 +178,11 @@ const CorrectionForm = ({ onClose }: CorrectionFormProps) => {
           </div>
         </div>
         
-        <CorrectorDashboard />
+        <CorrectorDashboard 
+          copies={copies}
+          onReturn={onClose}
+          onOpenEvaluation={handleOpenEvaluation}
+        />
       </div>
     </div>
   );

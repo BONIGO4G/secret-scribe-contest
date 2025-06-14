@@ -6,6 +6,7 @@ import CorrectorDashboard from "@/components/CorrectorDashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Users, FileText, BarChart3, ArrowRight, CheckCircle, Clock, Lock } from "lucide-react";
+import { Copy, UserRole } from "../App";
 
 interface User {
   name: string;
@@ -15,18 +16,24 @@ interface User {
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [submissions, setSubmissions] = useState<Copy[]>([]);
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
+  const handleLogin = (username: string, role: UserRole) => {
+    setUser({ name: username, role });
     setShowLoginModal(false);
   };
 
   const handleLogout = () => {
     setUser(null);
+    setSubmissions([]);
   };
 
   const handleReturnToHome = () => {
     setUser(null);
+  };
+
+  const handleOpenEvaluation = (copy: Copy) => {
+    console.log("Opening evaluation for copy:", copy);
   };
 
   // Page d'accueil pour utilisateurs non connectés
@@ -34,13 +41,13 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <Header 
-          user={user} 
+          currentUser={user} 
           onLogin={() => setShowLoginModal(true)} 
           onLogout={handleLogout} 
         />
         
         <LoginModal 
-          isOpen={showLoginModal}
+          show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={handleLogin}
         />
@@ -258,17 +265,28 @@ const Index = () => {
     );
   }
 
-  // Dashboard basé sur le rôle de l'utilisateur
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        user={user} 
+        currentUser={user} 
         onLogin={() => setShowLoginModal(true)} 
         onLogout={handleLogout} 
       />
       
-      {user.role === 'candidate' && <CandidateDashboard onReturnToHome={handleReturnToHome} />}
-      {user.role === 'corrector' && <CorrectorDashboard onReturnToHome={handleReturnToHome} />}
+      {user.role === 'candidate' && (
+        <CandidateDashboard 
+          submissions={submissions}
+          setSubmissions={setSubmissions}
+          onReturn={handleReturnToHome}
+        />
+      )}
+      {user.role === 'corrector' && (
+        <CorrectorDashboard 
+          copies={submissions}
+          onReturn={handleReturnToHome}
+          onOpenEvaluation={handleOpenEvaluation}
+        />
+      )}
     </div>
   );
 };
