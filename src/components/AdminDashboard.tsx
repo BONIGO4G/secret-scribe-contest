@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Upload, Users, BarChart3, Hash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Settings, Upload, Users, BarChart3, Hash, ArrowLeft } from 'lucide-react';
 import UploadInterface from './UploadInterface';
 import ExportReports from './ExportReports';
 import UniqueCodeGenerator from './UniqueCodeGenerator';
@@ -27,10 +28,22 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">Administration</h2>
-        <p className="text-gray-600">
-          Interface complète de gestion du système de concours
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Administration</h2>
+            <p className="text-gray-600">
+              Interface complète de gestion du système de concours
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={onReturn}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Retour à l'accueil</span>
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
