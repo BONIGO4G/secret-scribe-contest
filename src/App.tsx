@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import HomePage from '@/pages/HomePage';
+import FeaturesPage from '@/pages/FeaturesPage';
 import CandidateDashboard from '@/components/CandidateDashboard';
 import CorrectorDashboard from '@/components/CorrectorDashboard';
 import EvaluationGrid from '@/components/EvaluationGrid';
@@ -9,7 +11,7 @@ import AdminDashboard from '@/components/AdminDashboard';
 import LoginModal from '@/components/LoginModal';
 
 export type UserRole = 'candidate' | 'corrector' | 'admin';
-export type PageType = 'home' | 'candidate' | 'corrector' | 'evaluation' | 'admin';
+export type PageType = 'home' | 'features' | 'candidate' | 'corrector' | 'evaluation' | 'admin';
 
 export interface User {
   name: string;
@@ -57,6 +59,10 @@ function App() {
     setCurrentPage('home');
   };
 
+  const handleShowFeatures = () => {
+    setCurrentPage('features');
+  };
+
   const handleOpenEvaluation = (copy: Copy) => {
     setSelectedCopy(copy);
     setCurrentPage('evaluation');
@@ -72,6 +78,10 @@ function App() {
 
   const renderCurrentPage = () => {
     switch (currentPage) {
+      case 'features':
+        return (
+          <FeaturesPage onBackToHome={handleReturnHome} />
+        );
       case 'candidate':
         return (
           <CandidateDashboard 
@@ -105,17 +115,19 @@ function App() {
           />
         ) : null;
       default:
-        return <HomePage onShowLogin={() => setShowLoginModal(true)} />;
+        return <HomePage onShowLogin={() => setShowLoginModal(true)} onShowFeatures={handleShowFeatures} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        currentUser={currentUser}
-        onLogin={() => setShowLoginModal(true)}
-        onLogout={handleLogout}
-      />
+      {currentPage !== 'features' && (
+        <Header 
+          currentUser={currentUser}
+          onLogin={() => setShowLoginModal(true)}
+          onLogout={handleLogout}
+        />
+      )}
       
       {renderCurrentPage()}
       
