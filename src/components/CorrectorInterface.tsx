@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
 import { Upload, Download, FileText } from 'lucide-react';
 
 declare global {
@@ -24,8 +23,13 @@ interface FormData {
   nomProf: string;
   prenomProf: string;
   etablissementProf: string;
-  matiere: string;
-  note: string;
+  notes: {
+    maths: string;
+    francais: string;
+    physiqueChimie: string;
+    histoireGeo: string;
+    anglais: string;
+  };
   fichier: File | null;
   copyId: string;
 }
@@ -37,24 +41,47 @@ interface Copy {
   nomProf: string;
   prenomProf: string;
   etablissementProf: string;
-  matiere: string;
-  note: number;
+  notes: {
+    maths: number;
+    francais: number;
+    physiqueChimie: number;
+    histoireGeo: number;
+    anglais: number;
+  };
+  moyenne: number;
+  mention: string;
+  statut: string;
   date: string;
   barcode?: string;
 }
 
 const CorrectorInterface = () => {
-  // Fonction pour générer un ID unique pour chaque copie
   const generateUniqueId = () => {
     const timestamp = Date.now().toString(36);
     const randomPart = Math.random().toString(36).substr(2, 5);
     return `${timestamp}-${randomPart}`.toUpperCase();
   };
 
-  // Fonction pour valider le format du matricule (8 chiffres + 1 lettre)
   const validateMatricule = (matricule: string) => {
     const regex = /^\d{8}[A-Za-z]$/;
     return regex.test(matricule);
+  };
+
+  const calculateMoyenne = (notes: any) => {
+    const notesValues = Object.values(notes).map(note => parseFloat(note as string) || 0);
+    return notesValues.reduce((sum, note) => sum + note, 0) / notesValues.length;
+  };
+
+  const getMention = (moyenne: number) => {
+    if (moyenne >= 16) return "Très Bien";
+    if (moyenne >= 14) return "Bien";
+    if (moyenne >= 12) return "Assez Bien";
+    if (moyenne >= 10) return "Passable";
+    return "Insuffisant";
+  };
+
+  const getStatut = (moyenne: number) => {
+    return moyenne >= 12 ? "ADMIS" : "REFUSÉ";
   };
 
   const [formData, setFormData] = useState<FormData>({
@@ -63,8 +90,13 @@ const CorrectorInterface = () => {
     nomProf: '',
     prenomProf: '',
     etablissementProf: '',
-    matiere: 'MATHS',
-    note: '',
+    notes: {
+      maths: '',
+      francais: '',
+      physiqueChimie: '',
+      histoireGeo: '',
+      anglais: ''
+    },
     fichier: null,
     copyId: generateUniqueId()
   });
@@ -77,6 +109,11 @@ const CorrectorInterface = () => {
   const [copies, setCopies] = useState<Copy[]>([]);
   const [matriculeValid, setMatriculeValid] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Calculer la moyenne en temps réel
+  const currentMoyenne = calculateMoyenne(formData.notes);
+  const currentMention = getMention(currentMoyenne);
+  const currentStatut = getStatut(currentMoyenne);
 
   // Charger les scripts externes
   useEffect(() => {
@@ -140,7 +177,15 @@ const CorrectorInterface = () => {
   }, [formData.matricule, formData.copyId, matriculeValid]);
 
   const handleChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+    if (name.startsWith('notes.')) {
+      const noteField = name.split('.')[1];
+      setFormData({ 
+        ...formData, 
+        notes: { ...formData.notes, [noteField]: value }
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
 
     if (name === 'matricule') {
       const isValid = validateMatricule(value);
@@ -167,13 +212,29 @@ const CorrectorInterface = () => {
     // Validation
     const validations: [boolean, string][] = [
       [!formData.fichier, 'Veuillez sélectionner un fichier.'],
-      [parseFloat(formData.note) < 0 || parseFloat(formData.note) > 20, 'La note doit être entre 0 et 20.'],
       [!formData.matricule, 'Le matricule est requis.'],
       [!validateMatricule(formData.matricule), 'Le matricule doit contenir 8 chiffres suivis d\'une lettre (ex: 12345678A).'],
       [!formData.centreComposition, 'Le centre de composition est requis.'],
       [!formData.nomProf || !formData.prenomProf, 'Le nom et prénom du professeur sont requis.'],
       [!formData.etablissementProf, 'L\'établissement du professeur est requis.']
     ];
+
+    // Vérifier qu'au moins une note est saisie
+    const hasAnyNote = Object.values(formData.notes).some(note => note !== '');
+    if (!hasAnyNote) {
+      setError('Veuillez saisir au moins une note.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Vérifier que toutes les notes saisies sont valides (0-20)
+    for (const [matiere, note] of Object.entries(formData.notes)) {
+      if (note !== '' && (parseFloat(note) < 0 || parseFloat(note) > 20)) {
+        setError(`La note de ${matiere} doit être entre 0 et 20.`);
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     for (const [condition, message] of validations) {
       if (condition) {
@@ -183,6 +244,11 @@ const CorrectorInterface = () => {
       }
     }
 
+    // Conversion des notes en nombres
+    const notesConverted = Object.fromEntries(
+      Object.entries(formData.notes).map(([key, value]) => [key, value === '' ? 0 : parseFloat(value)])
+    );
+
     // Création de l'objet copie
     const nouvelleCopie: Copy = {
       id: formData.copyId,
@@ -191,8 +257,10 @@ const CorrectorInterface = () => {
       nomProf: formData.nomProf,
       prenomProf: formData.prenomProf,
       etablissementProf: formData.etablissementProf,
-      matiere: formData.matiere,
-      note: parseFloat(formData.note),
+      notes: notesConverted as any,
+      moyenne: currentMoyenne,
+      mention: currentMention,
+      statut: currentStatut,
       date: new Date().toISOString(),
       barcode: barcodeData || undefined
     };
@@ -200,15 +268,20 @@ const CorrectorInterface = () => {
     setCopies([...copies, nouvelleCopie]);
 
     setTimeout(() => {
-      setSuccess(`Copie enregistrée - ID: ${formData.copyId}`);
+      setSuccess(`Copie enregistrée - ID: ${formData.copyId} - Statut: ${currentStatut}`);
       setFormData({
         matricule: '',
         centreComposition: '',
         nomProf: formData.nomProf,
         prenomProf: formData.prenomProf,
         etablissementProf: formData.etablissementProf,
-        matiere: 'MATHS',
-        note: '',
+        notes: {
+          maths: '',
+          francais: '',
+          physiqueChimie: '',
+          histoireGeo: '',
+          anglais: ''
+        },
         fichier: null,
         copyId: generateUniqueId()
       });
@@ -234,8 +307,14 @@ const CorrectorInterface = () => {
       'Centre Composition': copie.centreComposition,
       'Professeur': `${copie.prenomProf} ${copie.nomProf}`,
       'Établissement Professeur': copie.etablissementProf,
-      'Matière': copie.matiere,
-      'Note': copie.note,
+      'Mathématiques': copie.notes.maths,
+      'Français': copie.notes.francais,
+      'Physique-Chimie': copie.notes.physiqueChimie,
+      'Histoire-Géo': copie.notes.histoireGeo,
+      'Anglais': copie.notes.anglais,
+      'Moyenne': copie.moyenne.toFixed(2),
+      'Mention': copie.mention,
+      'Statut': copie.statut,
       'Date': new Date(copie.date).toLocaleString()
     }));
 
@@ -262,29 +341,31 @@ const CorrectorInterface = () => {
     }
 
     const { jsPDF } = window;
-    const doc = new jsPDF();
+    const doc = new jsPDF('landscape');
     
-    // Titre du document
     doc.setFontSize(16);
     doc.setTextColor(51, 65, 85);
-    doc.text('Rapport des Copies Corrigées', 105, 15, { align: 'center' });
+    doc.text('Rapport des Résultats d\'Examen', 148, 15, { align: 'center' });
     
-    // Informations professeur
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
     doc.text(`Professeur: ${copies[0].prenomProf} ${copies[0].nomProf}`, 14, 25);
     doc.text(`Établissement: ${copies[0].etablissementProf}`, 14, 30);
-    doc.text(`Généré le: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+    doc.text(`Généré le: ${new Date().toLocaleDateString()}`, 148, 30, { align: 'center' });
     
-    // Tableau des données
-    const headers = [['ID', 'Matricule', 'Centre', 'Matière', 'Note', 'Date']];
+    const headers = [['ID', 'Matricule', 'Centre', 'Maths', 'Français', 'PC', 'HG', 'Anglais', 'Moyenne', 'Mention', 'Statut']];
     const data = copies.map(copie => [
       copie.id,
       copie.matricule,
       copie.centreComposition,
-      copie.matiere,
-      copie.note,
-      new Date(copie.date).toLocaleDateString()
+      copie.notes.maths,
+      copie.notes.francais,
+      copie.notes.physiqueChimie,
+      copie.notes.histoireGeo,
+      copie.notes.anglais,
+      copie.moyenne.toFixed(2),
+      copie.mention,
+      copie.statut
     ]);
     
     doc.autoTable({
@@ -301,42 +382,26 @@ const CorrectorInterface = () => {
         fillColor: [248, 250, 252]
       },
       styles: {
-        fontSize: 9,
-        cellPadding: 3
+        fontSize: 8,
+        cellPadding: 2
       },
       margin: { top: 40 }
     });
     
-    // Statistiques
-    const totalCopies = copies.length;
-    const moyenne = copies.reduce((sum, copie) => sum + copie.note, 0) / totalCopies;
-    const meilleureNote = Math.max(...copies.map(copie => copie.note));
-    const pireNote = Math.min(...copies.map(copie => copie.note));
-    
-    doc.setFontSize(10);
-    doc.setTextColor(51, 65, 85);
-    const finalY = (doc as any).autoTable.previous.finalY;
-    doc.text(`Statistiques:`, 14, finalY + 15);
-    doc.text(`• Copies corrigées: ${totalCopies}`, 20, finalY + 20);
-    doc.text(`• Moyenne: ${moyenne.toFixed(2)}/20`, 20, finalY + 25);
-    doc.text(`• Meilleure note: ${meilleureNote}/20`, 20, finalY + 30);
-    doc.text(`• Pire note: ${pireNote}/20`, 20, finalY + 35);
-    
-    doc.save(`rapport-copies_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save(`rapport-resultats_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-      <Card className="w-full max-w-4xl">
+      <Card className="w-full max-w-6xl">
         <CardHeader className="bg-slate-700 text-white">
-          <CardTitle className="text-2xl text-center">Correcteur de Copies</CardTitle>
+          <CardTitle className="text-2xl text-center">Saisie des Résultats d'Examen</CardTitle>
           <p className="text-slate-200 text-center text-sm">
-            Système de gestion des copies d'examen
+            Système de gestion des notes et résultats
           </p>
         </CardHeader>
         
         <CardContent className="p-6">
-          {/* Messages d'alerte */}
           {error && (
             <Alert className="mb-4 border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">{error}</AlertDescription>
@@ -349,7 +414,7 @@ const CorrectorInterface = () => {
             </Alert>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Section Professeur */}
             <div className="space-y-2">
               <h3 className="font-medium text-slate-700">Informations du Professeur</h3>
@@ -386,7 +451,7 @@ const CorrectorInterface = () => {
             
             {/* Section Étudiant */}
             <div className="space-y-2">
-              <h3 className="font-medium text-slate-700">Informations de la Copie</h3>
+              <h3 className="font-medium text-slate-700">Informations de l'Étudiant</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Matricule Étudiant</Label>
@@ -419,35 +484,94 @@ const CorrectorInterface = () => {
                   </Select>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+            
+            {/* Section Notes */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-slate-700">Notes par Matière (0-20)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <Label>Matière</Label>
-                  <Select value={formData.matiere} onValueChange={(value) => handleChange('matiere', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MATHS">Mathématiques</SelectItem>
-                      <SelectItem value="FR">Français</SelectItem>
-                      <SelectItem value="PC">Physique-Chimie</SelectItem>
-                      <SelectItem value="HG">Histoire-Géo</SelectItem>
-                      <SelectItem value="ANG">Anglais</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Note (0-20)</Label>
+                  <Label>Mathématiques</Label>
                   <Input
                     type="number"
-                    value={formData.note}
-                    onChange={(e) => handleChange('note', e.target.value)}
-                    required
+                    value={formData.notes.maths}
+                    onChange={(e) => handleChange('notes.maths', e.target.value)}
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="15.5"
+                    placeholder="0.00"
                   />
+                </div>
+                <div>
+                  <Label>Français</Label>
+                  <Input
+                    type="number"
+                    value={formData.notes.francais}
+                    onChange={(e) => handleChange('notes.francais', e.target.value)}
+                    min="0"
+                    max="20"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Physique-Chimie</Label>
+                  <Input
+                    type="number"
+                    value={formData.notes.physiqueChimie}
+                    onChange={(e) => handleChange('notes.physiqueChimie', e.target.value)}
+                    min="0"
+                    max="20"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Histoire-Géographie</Label>
+                  <Input
+                    type="number"
+                    value={formData.notes.histoireGeo}
+                    onChange={(e) => handleChange('notes.histoireGeo', e.target.value)}
+                    min="0"
+                    max="20"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Anglais</Label>
+                  <Input
+                    type="number"
+                    value={formData.notes.anglais}
+                    onChange={(e) => handleChange('notes.anglais', e.target.value)}
+                    min="0"
+                    max="20"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Résultats calculés */}
+            <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+              <h3 className="font-medium text-slate-700">Résultats Calculés</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-slate-600">Moyenne</p>
+                  <p className="text-2xl font-bold text-slate-700">{currentMoyenne.toFixed(2)}/20</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-slate-600">Mention</p>
+                  <Badge variant={currentMoyenne >= 12 ? "default" : "secondary"} className="text-sm">
+                    {currentMention}
+                  </Badge>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-slate-600">Statut</p>
+                  <Badge variant={currentStatut === "ADMIS" ? "default" : "destructive"} className="text-sm">
+                    {currentStatut}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -506,7 +630,7 @@ const CorrectorInterface = () => {
                 disabled={isSubmitting}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                {isSubmitting ? 'Enregistrement...' : 'Enregistrer la copie'}
+                {isSubmitting ? 'Enregistrement...' : 'Enregistrer les résultats'}
               </Button>
               
               <Button
@@ -537,28 +661,36 @@ const CorrectorInterface = () => {
           {copies.length > 0 && (
             <div className="mt-8">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-medium text-slate-700">Copies enregistrées ({copies.length})</h3>
+                <h3 className="font-medium text-slate-700">Résultats enregistrés ({copies.length})</h3>
                 <span className="text-sm text-slate-500">Dernière: {new Date(copies[copies.length-1].date).toLocaleTimeString()}</span>
               </div>
               <div className="overflow-x-auto border border-slate-200 rounded-lg">
                 <table className="min-w-full">
                   <thead className="bg-slate-100">
                     <tr>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">ID</th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Matricule</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Matière</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Note</th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Centre</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Moyenne</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Mention</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Statut</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...copies].reverse().map((copie, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-4 py-2 text-sm font-mono">{copie.id}</td>
                         <td className="px-4 py-2 text-sm font-mono">{copie.matricule}</td>
-                        <td className="px-4 py-2 text-sm">{copie.matiere}</td>
-                        <td className="px-4 py-2 text-sm font-bold">{copie.note}/20</td>
                         <td className="px-4 py-2 text-sm">{copie.centreComposition}</td>
+                        <td className="px-4 py-2 text-sm font-bold">{copie.moyenne.toFixed(2)}/20</td>
+                        <td className="px-4 py-2 text-sm">
+                          <Badge variant={copie.moyenne >= 12 ? "default" : "secondary"} className="text-xs">
+                            {copie.mention}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          <Badge variant={copie.statut === "ADMIS" ? "default" : "destructive"} className="text-xs">
+                            {copie.statut}
+                          </Badge>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -569,7 +701,6 @@ const CorrectorInterface = () => {
         </CardContent>
       </Card>
       
-      {/* Canvas caché */}
       <canvas ref={canvasRef} style={{display: 'none'}} width={400} height={100} />
     </div>
   );
