@@ -1,0 +1,1814 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConcoursPro - Plateforme Complète de Gestion de Concours</title>
+    <meta name="description" content="Plateforme professionnelle complète pour la gestion des concours avec anonymisation automatique">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'bounce-subtle': 'bounceSubtle 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- jsPDF pour la génération de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bounceSubtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .hidden { display: none !important; }
+        .show { display: block !important; }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .upload-zone {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        
+        .evaluation-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .evaluation-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('home')">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="graduation-cap" class="text-white w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">ConcoursPro</h1>
+                </div>
+                
+                <div id="auth-section">
+                    <button id="login-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center">
+                        <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
+                        Se connecter
+                    </button>
+                    
+                    <div id="user-info" class="hidden flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="user" class="w-4 h-4 text-gray-600"></i>
+                            <span id="username" class="text-gray-700 font-medium"></span>
+                            <span id="user-role" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"></span>
+                        </div>
+                        <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex items-center">
+                            <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Page -->
+        <div id="home-page">
+            <!-- Hero Section -->
+            <section class="container mx-auto px-4 py-20 text-center">
+                <div class="max-w-5xl mx-auto animate-fade-in">
+                    <div class="mb-8">
+                        <div class="inline-flex items-center bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                            <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
+                            Plateforme 100% sécurisée et anonyme
+                        </div>
+                    </div>
+                    
+                    <h1 class="text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                        Système de Gestion de 
+                        <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
+                            Concours Moderne
+                        </span>
+                    </h1>
+                    
+                    <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                        Plateforme professionnelle complète pour la gestion des concours et examens avec 
+                        anonymisation automatique, interfaces intuitives et sécurité renforcée.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                        <button id="access-platform-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all rounded-lg flex items-center">
+                            Accéder à la plateforme
+                            <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+                        </button>
+                        
+                        <button id="demo-btn" class="border-2 border-gray-300 hover:bg-gray-50 px-8 py-4 text-lg rounded-lg transition-all">
+                            Démonstration
+                        </button>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600 mb-2">100%</div>
+                            <div class="text-sm text-gray-600">Anonymisation</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-purple-600 mb-2">24/7</div>
+                            <div class="text-sm text-gray-600">Disponibilité</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600 mb-2">SSL</div>
+                            <div class="text-sm text-gray-600">Sécurisé</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="container mx-auto px-4 py-20 bg-white">
+                <div class="text-center mb-16">
+                    <h3 class="text-4xl font-bold text-gray-900 mb-4">
+                        Fonctionnalités Avancées
+                    </h3>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Une suite complète d'outils professionnels pour la gestion moderne des concours
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i data-lucide="shield" class="text-white w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-blue-800 mb-3">Anonymisation Totale</h4>
+                        <p class="text-base text-blue-700">
+                            Génération automatique d'identifiants anonymes avec chiffrement avancé pour chaque copie
+                        </p>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i data-lucide="file-text" class="text-white w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-green-800 mb-3">Upload Intelligent</h4>
+                        <p class="text-base text-green-700">
+                            Dépôt sécurisé de documents PDF/ZIP avec validation automatique et sauvegarde cloud
+                        </p>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i data-lucide="users" class="text-white w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-purple-800 mb-3">Gestion Multi-Rôles</h4>
+                        <p class="text-base text-purple-700">
+                            Interfaces dédiées et optimisées pour candidats, correcteurs et administrateurs
+                        </p>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i data-lucide="bar-chart-3" class="text-white w-8 h-8"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-orange-800 mb-3">Analytics Avancés</h4>
+                        <p class="text-base text-orange-700">
+                            Rapports détaillés, statistiques en temps réel et export de données personnalisables
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Process Section -->
+            <section class="bg-gradient-to-r from-gray-50 to-blue-50 py-20">
+                <div class="container mx-auto px-4">
+                    <div class="text-center mb-16">
+                        <h3 class="text-4xl font-bold text-gray-900 mb-4">
+                            Processus Simplifié
+                        </h3>
+                        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                            Un workflow optimisé en 3 étapes pour une expérience utilisateur fluide
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                                1
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-lg border">
+                                <div class="flex justify-center mb-4">
+                                    <i data-lucide="upload" class="w-8 h-8 text-blue-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold mb-4 text-gray-800">Dépôt Sécurisé</h4>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Les candidats téléchargent leurs copies via notre interface sécurisée avec validation automatique
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                                2
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-lg border">
+                                <div class="flex justify-center mb-4">
+                                    <i data-lucide="lock" class="w-8 h-8 text-green-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold mb-4 text-gray-800">Anonymisation</h4>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Le système génère instantanément des identifiants anonymes avec chiffrement de niveau bancaire
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                                3
+                            </div>
+                            <div class="bg-white rounded-xl p-6 shadow-lg border">
+                                <div class="flex justify-center mb-4">
+                                    <i data-lucide="check-circle" class="w-8 h-8 text-purple-500"></i>
+                                </div>
+                                <h4 class="text-xl font-bold mb-4 text-gray-800">Correction Impartiale</h4>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Les correcteurs évaluent les copies en toute objectivité sans connaître l'identité des candidats
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="user" class="text-white w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">Connexion</h2>
+                    <p class="text-gray-600">Accédez à votre espace personnel</p>
+                </div>
+
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Rôle</label>
+                        <select id="role-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Sélectionnez votre rôle</option>
+                            <option value="candidate">Candidat</option>
+                            <option value="corrector">Correcteur</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" id="matricule-label">Matricule</label>
+                        <input type="text" id="matricule-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Votre matricule">
+                        <p id="matricule-help" class="mt-1 text-xs text-gray-500"></p>
+                    </div>
+
+                    <div id="error-message" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p class="text-sm text-red-600"></p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" id="cancel-login" class="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Annuler
+                        </button>
+                        <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all">
+                            Se connecter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Candidate Dashboard -->
+        <div id="candidate-dashboard" class="hidden">
+            <div class="container mx-auto px-4 py-8">
+                <div class="mb-8 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Espace Candidat</h2>
+                        <p class="text-gray-600">Déposez vos copies et suivez vos soumissions</p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 flex items-center">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Retour
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Zone d'upload -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-xl font-bold mb-4 flex items-center">
+                                <i data-lucide="upload" class="w-5 h-5 mr-2 text-blue-500"></i>
+                                Dépôt de copie
+                            </h3>
+                            <div id="upload-zone" class="upload-zone rounded-lg p-12 text-center cursor-pointer">
+                                <i data-lucide="cloud-upload" class="w-16 h-16 mx-auto mb-4 text-gray-400"></i>
+                                <p class="text-lg font-medium mb-2">Glissez-déposez vos fichiers ici</p>
+                                <p class="text-gray-500 mb-4">ou cliquez pour sélectionner (PDF, ZIP - max 50MB)</p>
+                                <button id="select-files-btn" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                    Choisir des fichiers
+                                </button>
+                                <input type="file" id="file-input" multiple accept=".pdf,.zip" class="hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations et statistiques -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-xl font-bold mb-4">Informations importantes</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-blue-50 rounded-lg">
+                                    <h4 class="font-medium text-blue-900 mb-2 flex items-center">
+                                        <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
+                                        Anonymisation
+                                    </h4>
+                                    <p class="text-sm text-blue-700">
+                                        Votre identité sera masquée avec un code anonyme unique.
+                                    </p>
+                                </div>
+                                <div class="p-4 bg-green-50 rounded-lg">
+                                    <h4 class="font-medium text-green-900 mb-2 flex items-center">
+                                        <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
+                                        Sécurité
+                                    </h4>
+                                    <p class="text-sm text-green-700">
+                                        Données chiffrées et stockées de manière sécurisée.
+                                    </p>
+                                </div>
+                                <div class="p-4 bg-orange-50 rounded-lg">
+                                    <h4 class="font-medium text-orange-900 mb-2 flex items-center">
+                                        <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
+                                        Délai
+                                    </h4>
+                                    <p class="text-sm text-orange-700">
+                                        Date limite : 31 Décembre 2024 à 23h59
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-xl font-bold mb-4">Statistiques</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Copies déposées:</span>
+                                    <span id="submitted-count" class="font-bold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">En attente:</span>
+                                    <span id="pending-count" class="font-bold text-orange-600">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Corrigées:</span>
+                                    <span id="corrected-count" class="font-bold text-green-600">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liste des copies déposées -->
+                <div id="submissions-list" class="mt-8 bg-white rounded-lg shadow-lg hidden">
+                    <div class="p-6 border-b">
+                        <h3 class="text-xl font-bold">Mes copies déposées</h3>
+                        <p class="text-gray-600">Historique de vos dépôts avec les identifiants anonymes</p>
+                    </div>
+                    <div id="submissions-container" class="p-6">
+                        <!-- Les soumissions seront ajoutées ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Corrector Dashboard -->
+        <div id="corrector-dashboard" class="hidden">
+            <div class="container mx-auto px-4 py-8">
+                <div class="mb-8 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Espace Correcteur</h2>
+                        <p class="text-gray-600">Corrigez les copies en toute anonymité</p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 flex items-center">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Retour
+                    </button>
+                </div>
+
+                <!-- Stats du correcteur -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">À corriger</p>
+                                <p class="text-2xl font-bold text-orange-600" id="corrector-pending">5</p>
+                            </div>
+                            <i data-lucide="clock" class="w-8 h-8 text-orange-600"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">En cours</p>
+                                <p class="text-2xl font-bold text-blue-600" id="corrector-progress">2</p>
+                            </div>
+                            <i data-lucide="edit" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Corrigées</p>
+                                <p class="text-2xl font-bold text-green-600" id="corrector-completed">12</p>
+                            </div>
+                            <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Moyenne</p>
+                                <p class="text-2xl font-bold text-purple-600">13.5/20</p>
+                            </div>
+                            <i data-lucide="trending-up" class="w-8 h-8 text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sélection de matière -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i data-lucide="book-open" class="w-5 h-5 mr-2"></i>
+                        Sélection de la matière
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="subject-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors" data-subject="maths">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="calculator" class="w-6 h-6 text-blue-600"></i>
+                                </div>
+                                <h4 class="font-medium">Mathématiques</h4>
+                                <p class="text-sm text-gray-600">3 copies</p>
+                            </div>
+                        </div>
+                        
+                        <div class="subject-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 transition-colors" data-subject="physique">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="beaker" class="w-6 h-6 text-green-600"></i>
+                                </div>
+                                <h4 class="font-medium">Physique-Chimie</h4>
+                                <p class="text-sm text-gray-600">2 copies</p>
+                            </div>
+                        </div>
+                        
+                        <div class="subject-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-500 transition-colors" data-subject="francais">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="pen-tool" class="w-6 h-6 text-purple-600"></i>
+                                </div>
+                                <h4 class="font-medium">Français</h4>
+                                <p class="text-sm text-gray-600">4 copies</p>
+                            </div>
+                        </div>
+                        
+                        <div class="subject-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-orange-500 transition-colors" data-subject="anglais">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="globe" class="w-6 h-6 text-orange-600"></i>
+                                </div>
+                                <h4 class="font-medium">Anglais</h4>
+                                <p class="text-sm text-gray-600">1 copie</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liste des copies à corriger -->
+                <div class="bg-white rounded-lg shadow-lg">
+                    <div class="p-6 border-b">
+                        <h3 class="text-xl font-bold">Copies à corriger</h3>
+                        <p class="text-gray-600">Sélectionnez une copie pour commencer la correction</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID Anonyme</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Matière</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200" id="copies-table">
+                                <!-- Les copies seront ajoutées dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evaluation Modal -->
+        <div id="evaluation-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold">Grille d'évaluation</h2>
+                            <p class="text-gray-600">Copie: <span id="eval-copy-id" class="font-mono"></span></p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold">
+                                <span id="total-score" class="text-green-600">0</span>/20
+                            </div>
+                            <div class="w-32 bg-gray-200 rounded-full h-2 mt-1">
+                                <div id="score-progress" class="bg-green-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Critères d'évaluation -->
+                    <div class="space-y-6 mb-8">
+                        <div class="border rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-medium">Contenu et exactitude</h4>
+                                    <p class="text-sm text-gray-600">Maximum: 8 points</p>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm" id="criterion1-score">0/8</span>
+                            </div>
+                            <div class="evaluation-grid">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Note attribuée</label>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion1', -0.5, 8)">-</button>
+                                        <input type="number" id="criterion1-input" min="0" max="8" step="0.5" value="0" class="w-20 text-center border rounded px-2 py-1" onchange="updateCriterion('criterion1', 8)">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion1', 0.5, 8)">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Commentaires</label>
+                                    <textarea id="criterion1-comments" rows="2" class="w-full border rounded px-3 py-2" placeholder="Remarques pour ce critère..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-medium">Méthodologie</h4>
+                                    <p class="text-sm text-gray-600">Maximum: 6 points</p>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm" id="criterion2-score">0/6</span>
+                            </div>
+                            <div class="evaluation-grid">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Note attribuée</label>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion2', -0.5, 6)">-</button>
+                                        <input type="number" id="criterion2-input" min="0" max="6" step="0.5" value="0" class="w-20 text-center border rounded px-2 py-1" onchange="updateCriterion('criterion2', 6)">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion2', 0.5, 6)">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Commentaires</label>
+                                    <textarea id="criterion2-comments" rows="2" class="w-full border rounded px-3 py-2" placeholder="Remarques pour ce critère..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-medium">Présentation et clarté</h4>
+                                    <p class="text-sm text-gray-600">Maximum: 4 points</p>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm" id="criterion3-score">0/4</span>
+                            </div>
+                            <div class="evaluation-grid">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Note attribuée</label>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion3', -0.5, 4)">-</button>
+                                        <input type="number" id="criterion3-input" min="0" max="4" step="0.5" value="0" class="w-20 text-center border rounded px-2 py-1" onchange="updateCriterion('criterion3', 4)">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion3', 0.5, 4)">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Commentaires</label>
+                                    <textarea id="criterion3-comments" rows="2" class="w-full border rounded px-3 py-2" placeholder="Remarques pour ce critère..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-medium">Respect des consignes</h4>
+                                    <p class="text-sm text-gray-600">Maximum: 2 points</p>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm" id="criterion4-score">0/2</span>
+                            </div>
+                            <div class="evaluation-grid">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Note attribuée</label>
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion4', -0.5, 2)">-</button>
+                                        <input type="number" id="criterion4-input" min="0" max="2" step="0.5" value="0" class="w-20 text-center border rounded px-2 py-1" onchange="updateCriterion('criterion4', 2)">
+                                        <button type="button" class="px-2 py-1 border rounded hover:bg-gray-50" onclick="adjustScore('criterion4', 0.5, 2)">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Commentaires</label>
+                                    <textarea id="criterion4-comments" rows="2" class="w-full border rounded px-3 py-2" placeholder="Remarques pour ce critère..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commentaires généraux -->
+                    <div class="border rounded-lg p-4 mb-6">
+                        <h4 class="font-medium mb-3">Commentaires généraux</h4>
+                        <textarea id="global-comments" rows="4" class="w-full border rounded px-3 py-2" placeholder="Commentaires généraux sur la copie, remarques d'ensemble, conseils pour l'étudiant..."></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeEvaluationModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Annuler
+                        </button>
+                        <button onclick="saveEvaluation()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                            <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                            Enregistrer la correction (<span id="save-score">0</span>/20)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="hidden">
+            <div class="container mx-auto px-4 py-8">
+                <div class="mb-8 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Administration</h2>
+                        <p class="text-gray-600">Interface complète de gestion du système</p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 flex items-center">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                        Retour
+                    </button>
+                </div>
+
+                <!-- Onglets d'administration -->
+                <div class="bg-white rounded-lg shadow-lg mb-8">
+                    <div class="border-b">
+                        <nav class="flex space-x-8">
+                            <button class="admin-tab active px-6 py-4 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="overview">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2 inline"></i>
+                                Vue d'ensemble
+                            </button>
+                            <button class="admin-tab px-6 py-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="upload">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2 inline"></i>
+                                Upload
+                            </button>
+                            <button class="admin-tab px-6 py-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="codes">
+                                <i data-lucide="hash" class="w-4 h-4 mr-2 inline"></i>
+                                Codes
+                            </button>
+                            <button class="admin-tab px-6 py-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="reports">
+                                <i data-lucide="file-text" class="w-4 h-4 mr-2 inline"></i>
+                                Rapports
+                            </button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Contenu des onglets -->
+                    <div class="p-6">
+                        <!-- Vue d'ensemble -->
+                        <div id="admin-overview" class="admin-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-blue-100">Candidats</p>
+                                            <p class="text-3xl font-bold" id="total-candidates">0</p>
+                                        </div>
+                                        <i data-lucide="users" class="w-8 h-8 text-blue-200"></i>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-green-100">Copies</p>
+                                            <p class="text-3xl font-bold" id="total-copies">0</p>
+                                        </div>
+                                        <i data-lucide="file-text" class="w-8 h-8 text-green-200"></i>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-purple-100">Corrigées</p>
+                                            <p class="text-3xl font-bold" id="total-corrected">0</p>
+                                        </div>
+                                        <i data-lucide="check-circle" class="w-8 h-8 text-purple-200"></i>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-orange-100">En attente</p>
+                                            <p class="text-3xl font-bold" id="total-pending">0</p>
+                                        </div>
+                                        <i data-lucide="clock" class="w-8 h-8 text-orange-200"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div class="border rounded-lg p-6">
+                                    <h3 class="text-lg font-bold mb-4">Activité récente</h3>
+                                    <div class="space-y-3" id="recent-activity">
+                                        <!-- Activité sera ajoutée dynamiquement -->
+                                    </div>
+                                </div>
+
+                                <div class="border rounded-lg p-6">
+                                    <h3 class="text-lg font-bold mb-4">Actions rapides</h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <button onclick="generateUniqueCode()" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                            <i data-lucide="hash" class="w-6 h-6 mb-2 text-blue-600"></i>
+                                            <h4 class="font-medium">Générer code</h4>
+                                            <p class="text-sm text-gray-600">Code unique</p>
+                                        </button>
+                                        <button onclick="exportData()" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                            <i data-lucide="download" class="w-6 h-6 mb-2 text-green-600"></i>
+                                            <h4 class="font-medium">Exporter</h4>
+                                            <p class="text-sm text-gray-600">Données CSV</p>
+                                        </button>
+                                        <button onclick="viewStatistics()" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                            <i data-lucide="trending-up" class="w-6 h-6 mb-2 text-purple-600"></i>
+                                            <h4 class="font-medium">Statistiques</h4>
+                                            <p class="text-sm text-gray-600">Analyses</p>
+                                        </button>
+                                        <button onclick="systemSettings()" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                            <i data-lucide="settings" class="w-6 h-6 mb-2 text-gray-600"></i>
+                                            <h4 class="font-medium">Paramètres</h4>
+                                            <p class="text-sm text-gray-600">Configuration</p>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload -->
+                        <div id="admin-upload" class="admin-content hidden">
+                            <h3 class="text-xl font-bold mb-6">Interface d'upload avancée</h3>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+                                <i data-lucide="cloud-upload" class="w-16 h-16 mx-auto mb-4 text-gray-400"></i>
+                                <p class="text-lg font-medium mb-2">Zone d'upload administrateur</p>
+                                <p class="text-gray-500 mb-4">Déposez les documents administratifs ici</p>
+                                <button class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                                    Sélectionner des fichiers
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Codes -->
+                        <div id="admin-codes" class="admin-content hidden">
+                            <h3 class="text-xl font-bold mb-6">Générateur de codes uniques</h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div class="border rounded-lg p-6">
+                                    <h4 class="font-medium mb-4">Générer nouveaux codes</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Nombre de codes</label>
+                                            <input type="number" id="code-count" min="1" max="1000" value="10" class="w-full border rounded px-3 py-2">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Préfixe</label>
+                                            <input type="text" id="code-prefix" value="CONC" maxlength="10" class="w-full border rounded px-3 py-2">
+                                        </div>
+                                        <button onclick="generateBulkCodes()" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
+                                            Générer les codes
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="border rounded-lg p-6">
+                                    <h4 class="font-medium mb-4">Codes générés</h4>
+                                    <div id="generated-codes" class="space-y-2 max-h-64 overflow-y-auto">
+                                        <!-- Codes générés apparaîtront ici -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rapports -->
+                        <div id="admin-reports" class="admin-content hidden">
+                            <h3 class="text-xl font-bold mb-6">Export et rapports</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="border rounded-lg p-6">
+                                    <h4 class="font-medium mb-4">Export CSV</h4>
+                                    <p class="text-gray-600 mb-4">Exportez les données au format CSV pour Excel</p>
+                                    <button onclick="exportCSV()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 flex items-center justify-center">
+                                        <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                        Télécharger CSV
+                                    </button>
+                                </div>
+                                <div class="border rounded-lg p-6">
+                                    <h4 class="font-medium mb-4">Rapport détaillé</h4>
+                                    <p class="text-gray-600 mb-4">Générez un rapport complet avec statistiques</p>
+                                    <button onclick="generateDetailedReport()" class="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 flex items-center justify-center">
+                                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i>
+                                        Rapport détaillé
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toasts seront ajoutés ici dynamiquement -->
+    </div>
+
+    <script>
+        // State Management
+        let currentUser = null;
+        let currentPage = 'home';
+        let submissions = [];
+        let corrections = [];
+        let currentEvaluation = null;
+        
+        // Données de démonstration
+        let demoData = {
+            candidates: 142,
+            copies: 89,
+            corrected: 67,
+            pending: 22,
+            copiesToCorrect: [
+                { id: 'ANON-ABC123', subject: 'Mathématiques', date: '15/06/2025', status: 'pending', filename: 'copie_math_1.pdf' },
+                { id: 'ANON-DEF456', subject: 'Physique-Chimie', date: '15/06/2025', status: 'pending', filename: 'copie_physique_2.pdf' },
+                { id: 'ANON-GHI789', subject: 'Français', date: '14/06/2025', status: 'in_progress', filename: 'copie_francais_3.pdf' },
+                { id: 'ANON-JKL012', subject: 'Anglais', date: '14/06/2025', status: 'corrected', filename: 'copie_anglais_4.pdf', score: 15 }
+            ]
+        };
+
+        // DOM Elements
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginModal = document.getElementById('login-modal');
+        const loginForm = document.getElementById('login-form');
+        const cancelLogin = document.getElementById('cancel-login');
+        const accessPlatformBtn = document.getElementById('access-platform-btn');
+        const demoBtn = document.getElementById('demo-btn');
+        
+        const authSection = document.getElementById('auth-section');
+        const userInfo = document.getElementById('user-info');
+        const username = document.getElementById('username');
+        const userRole = document.getElementById('user-role');
+        
+        const roleSelect = document.getElementById('role-select');
+        const matriculeInput = document.getElementById('matricule-input');
+        const matriculeLabel = document.getElementById('matricule-label');
+        const matriculeHelp = document.getElementById('matricule-help');
+        const errorMessage = document.getElementById('error-message');
+
+        // Pages
+        const homePage = document.getElementById('home-page');
+        const candidateDashboard = document.getElementById('candidate-dashboard');
+        const correctorDashboard = document.getElementById('corrector-dashboard');
+        const adminDashboard = document.getElementById('admin-dashboard');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            initializeEventListeners();
+            loadDemoData();
+        });
+
+        function initializeEventListeners() {
+            // Auth events
+            loginBtn.addEventListener('click', showLoginModal);
+            accessPlatformBtn.addEventListener('click', showLoginModal);
+            demoBtn.addEventListener('click', showDemo);
+            cancelLogin.addEventListener('click', hideLoginModal);
+            logoutBtn.addEventListener('click', logout);
+            loginForm.addEventListener('submit', handleLogin);
+            roleSelect.addEventListener('change', handleRoleChange);
+
+            // Upload events
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('file-input');
+            const selectFilesBtn = document.getElementById('select-files-btn');
+
+            if (uploadZone && fileInput && selectFilesBtn) {
+                uploadZone.addEventListener('click', () => fileInput.click());
+                uploadZone.addEventListener('dragover', handleDragOver);
+                uploadZone.addEventListener('dragleave', handleDragLeave);
+                uploadZone.addEventListener('drop', handleDrop);
+                fileInput.addEventListener('change', handleFileSelect);
+                selectFilesBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+            }
+
+            // Subject selection
+            document.querySelectorAll('.subject-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('border-blue-500', 'bg-blue-50'));
+                    this.classList.add('border-blue-500', 'bg-blue-50');
+                    filterCopiesBySubject(this.dataset.subject);
+                });
+            });
+
+            // Admin tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    switchAdminTab(tabName);
+                });
+            });
+
+            // Modal close on backdrop click
+            window.addEventListener('click', function(e) {
+                if (e.target === loginModal) {
+                    hideLoginModal();
+                }
+                if (e.target === document.getElementById('evaluation-modal')) {
+                    closeEvaluationModal();
+                }
+            });
+        }
+
+        // Authentication Functions
+        function showLoginModal() {
+            loginModal.classList.remove('hidden');
+        }
+
+        function hideLoginModal() {
+            loginModal.classList.add('hidden');
+            clearLoginForm();
+        }
+
+        function clearLoginForm() {
+            roleSelect.value = '';
+            matriculeInput.value = '';
+            matriculeHelp.textContent = '';
+            hideError();
+        }
+
+        function showError(message) {
+            errorMessage.querySelector('p').textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function handleRoleChange() {
+            const role = roleSelect.value;
+            matriculeInput.value = '';
+            hideError();
+
+            if (role === 'candidate') {
+                matriculeLabel.textContent = 'Matricule Candidat';
+                matriculeInput.placeholder = '12345678';
+                matriculeHelp.textContent = 'Exactement 8 chiffres requis';
+                matriculeInput.maxLength = 8;
+            } else if (role === 'corrector') {
+                matriculeLabel.textContent = 'Matricule de Service';
+                matriculeInput.placeholder = 'PROF123456';
+                matriculeHelp.textContent = 'Minimum 6 caractères alphanumériques';
+                matriculeInput.removeAttribute('maxLength');
+            } else if (role === 'admin') {
+                matriculeLabel.textContent = 'Matricule Administrateur';
+                matriculeInput.placeholder = 'AD1234AK';
+                matriculeHelp.textContent = 'Format: AD + 4 chiffres + AK (ex: AD1234AK)';
+                matriculeInput.maxLength = 8;
+            } else {
+                matriculeLabel.textContent = 'Matricule';
+                matriculeInput.placeholder = 'Votre matricule';
+                matriculeHelp.textContent = '';
+                matriculeInput.removeAttribute('maxLength');
+            }
+        }
+
+        function validateMatricule(matricule, role) {
+            if (role === 'candidate') {
+                return /^\d{8}$/.test(matricule);
+            } else if (role === 'corrector') {
+                return /^[A-Za-z0-9]{6,}$/.test(matricule);
+            } else if (role === 'admin') {
+                return /^AD\d{4}AK$/.test(matricule);
+            }
+            return false;
+        }
+
+        function getMatriculeError(role) {
+            if (role === 'candidate') {
+                return 'Le matricule candidat doit contenir exactement 8 chiffres';
+            } else if (role === 'corrector') {
+                return 'Le matricule de service doit contenir au minimum 6 caractères alphanumériques';
+            } else if (role === 'admin') {
+                return 'Le matricule administrateur doit commencer par AD, suivi de 4 chiffres et se terminer par AK';
+            }
+            return '';
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            hideError();
+
+            const role = roleSelect.value;
+            const matricule = matriculeInput.value;
+
+            if (!matricule || !role) {
+                showError('Veuillez remplir tous les champs');
+                return;
+            }
+
+            if (!validateMatricule(matricule, role)) {
+                showError(getMatriculeError(role));
+                return;
+            }
+
+            currentUser = { name: matricule, role: role };
+            updateAuthSection();
+            showDashboard(role);
+            hideLoginModal();
+            
+            showToast('Connexion réussie', `Bienvenue ${matricule}`, 'success');
+        }
+
+        function logout() {
+            currentUser = null;
+            currentPage = 'home';
+            updateAuthSection();
+            showPage('home');
+            showToast('Déconnexion', 'Vous avez été déconnecté', 'info');
+        }
+
+        function updateAuthSection() {
+            if (currentUser) {
+                loginBtn.style.display = 'none';
+                userInfo.classList.remove('hidden');
+                username.textContent = currentUser.name;
+                userRole.textContent = currentUser.role;
+            } else {
+                loginBtn.style.display = 'inline-flex';
+                userInfo.classList.add('hidden');
+            }
+        }
+
+        function showDashboard(role) {
+            if (role === 'candidate') {
+                showPage('candidate');
+            } else if (role === 'corrector') {
+                showPage('corrector');
+                loadCopiesForCorrection();
+            } else if (role === 'admin') {
+                showPage('admin');
+                updateAdminStats();
+            }
+        }
+
+        function showPage(page) {
+            // Hide all pages
+            homePage.classList.add('hidden');
+            candidateDashboard.classList.add('hidden');
+            correctorDashboard.classList.add('hidden');
+            adminDashboard.classList.add('hidden');
+
+            // Show selected page
+            if (page === 'home') {
+                homePage.classList.remove('hidden');
+            } else if (page === 'candidate') {
+                candidateDashboard.classList.remove('hidden');
+            } else if (page === 'corrector') {
+                correctorDashboard.classList.remove('hidden');
+            } else if (page === 'admin') {
+                adminDashboard.classList.remove('hidden');
+            }
+
+            currentPage = page;
+            lucide.createIcons();
+        }
+
+        function showDemo() {
+            showToast('Mode Démonstration', 'Connectez-vous pour accéder aux fonctionnalités complètes', 'info');
+            showLoginModal();
+        }
+
+        // File Upload Functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            processFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            processFiles(files);
+        }
+
+        function processFiles(files) {
+            Array.from(files).forEach(file => {
+                if (validateFile(file)) {
+                    uploadFile(file);
+                }
+            });
+        }
+
+        function validateFile(file) {
+            const allowedTypes = ['application/pdf', 'application/zip'];
+            const maxSize = 50 * 1024 * 1024; // 50MB
+
+            if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.zip')) {
+                showToast('Erreur', 'Format non supporté. Seuls les PDF et ZIP sont acceptés.', 'error');
+                return false;
+            }
+
+            if (file.size > maxSize) {
+                showToast('Erreur', 'Fichier trop volumineux (max 50MB)', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function uploadFile(file) {
+            const anonymousId = generateAnonymousId();
+            const submission = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                anonymousId: anonymousId,
+                filename: file.name,
+                uploadDate: new Date().toLocaleString('fr-FR'),
+                status: 'pending',
+                size: file.size
+            };
+
+            submissions.push(submission);
+            updateSubmissionsList();
+            updateCandidateStats();
+            
+            showToast('Upload réussi', `Code anonyme: ${anonymousId}`, 'success');
+        }
+
+        function generateAnonymousId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'ANON-';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function updateSubmissionsList() {
+            const container = document.getElementById('submissions-container');
+            const listElement = document.getElementById('submissions-list');
+            
+            if (!container || !listElement) return;
+
+            if (submissions.length === 0) {
+                listElement.classList.add('hidden');
+                return;
+            }
+
+            listElement.classList.remove('hidden');
+            container.innerHTML = '';
+
+            submissions.forEach(submission => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border rounded-lg mb-4';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <i data-lucide="file-text" class="w-8 h-8 text-red-500"></i>
+                        <div>
+                            <p class="font-medium">${submission.filename}</p>
+                            <p class="text-sm text-gray-600">Déposé le ${submission.uploadDate}</p>
+                            <p class="text-xs text-gray-500">${formatFileSize(submission.size)}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-mono text-sm font-medium">${submission.anonymousId}</p>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>
+                            Reçu
+                        </span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            lucide.createIcons();
+        }
+
+        function updateCandidateStats() {
+            const submittedCount = document.getElementById('submitted-count');
+            const pendingCount = document.getElementById('pending-count');
+            const correctedCount = document.getElementById('corrected-count');
+
+            if (submittedCount) submittedCount.textContent = submissions.length;
+            if (pendingCount) pendingCount.textContent = submissions.filter(s => s.status === 'pending').length;
+            if (correctedCount) correctedCount.textContent = submissions.filter(s => s.status === 'corrected').length;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Corrector Functions
+        function loadCopiesForCorrection() {
+            const tableBody = document.getElementById('copies-table');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            demoData.copiesToCorrect.forEach(copy => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-mono">${copy.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${copy.subject}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${copy.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(copy.status)}">
+                            ${getStatusText(copy.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${copy.status === 'corrected' ? 
+                            `<span class="text-gray-400">Terminé (${copy.score}/20)</span>` :
+                            `<button onclick="startEvaluation('${copy.id}')" class="text-blue-600 hover:text-blue-800">Corriger</button>`
+                        }
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'pending': return 'bg-yellow-100 text-yellow-800';
+                case 'in_progress': return 'bg-blue-100 text-blue-800';
+                case 'corrected': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'pending': return 'En attente';
+                case 'in_progress': return 'En cours';
+                case 'corrected': return 'Corrigée';
+                default: return 'Inconnu';
+            }
+        }
+
+        function filterCopiesBySubject(subject) {
+            // Filtre les copies par matière (pour la démonstration)
+            showToast('Filtre appliqué', `Affichage des copies de ${subject}`, 'info');
+        }
+
+        // Evaluation Functions
+        function startEvaluation(copyId) {
+            const copy = demoData.copiesToCorrect.find(c => c.id === copyId);
+            if (!copy) return;
+
+            currentEvaluation = {
+                copyId: copyId,
+                copyInfo: copy,
+                criteria: {
+                    criterion1: { score: 0, comments: '' },
+                    criterion2: { score: 0, comments: '' },
+                    criterion3: { score: 0, comments: '' },
+                    criterion4: { score: 0, comments: '' }
+                },
+                globalComments: ''
+            };
+
+            document.getElementById('eval-copy-id').textContent = copyId;
+            document.getElementById('evaluation-modal').classList.remove('hidden');
+            resetEvaluationForm();
+            lucide.createIcons();
+        }
+
+        function resetEvaluationForm() {
+            // Reset all criterion inputs
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`criterion${i}-input`).value = 0;
+                document.getElementById(`criterion${i}-comments`).value = '';
+                updateCriterion(`criterion${i}`, i === 1 ? 8 : i === 2 ? 6 : i === 3 ? 4 : 2);
+            }
+            document.getElementById('global-comments').value = '';
+            updateTotalScore();
+        }
+
+        function adjustScore(criterionId, adjustment, maxScore) {
+            const input = document.getElementById(`${criterionId}-input`);
+            let currentValue = parseFloat(input.value) || 0;
+            let newValue = currentValue + adjustment;
+            newValue = Math.max(0, Math.min(newValue, maxScore));
+            input.value = newValue;
+            updateCriterion(criterionId, maxScore);
+        }
+
+        function updateCriterion(criterionId, maxScore) {
+            const input = document.getElementById(`${criterionId}-input`);
+            const scoreDisplay = document.getElementById(`${criterionId}-score`);
+            const score = parseFloat(input.value) || 0;
+            
+            scoreDisplay.textContent = `${score}/${maxScore}`;
+            
+            // Update color based on percentage
+            const percentage = (score / maxScore) * 100;
+            scoreDisplay.className = `px-2 py-1 rounded text-sm ${
+                percentage >= 80 ? 'bg-green-100 text-green-800' :
+                percentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                'bg-red-100 text-red-800'
+            }`;
+
+            updateTotalScore();
+        }
+
+        function updateTotalScore() {
+            let total = 0;
+            for (let i = 1; i <= 4; i++) {
+                const input = document.getElementById(`criterion${i}-input`);
+                total += parseFloat(input.value) || 0;
+            }
+            
+            document.getElementById('total-score').textContent = total;
+            document.getElementById('save-score').textContent = total;
+            
+            const percentage = (total / 20) * 100;
+            document.getElementById('score-progress').style.width = `${percentage}%`;
+            
+            // Update color
+            const totalElement = document.getElementById('total-score');
+            totalElement.className = percentage >= 50 ? 'text-green-600' : 'text-red-600';
+        }
+
+        function closeEvaluationModal() {
+            document.getElementById('evaluation-modal').classList.add('hidden');
+            currentEvaluation = null;
+        }
+
+        function saveEvaluation() {
+            if (!currentEvaluation) return;
+
+            const totalScore = parseFloat(document.getElementById('total-score').textContent);
+            const globalComments = document.getElementById('global-comments').value;
+            
+            // Collecter tous les commentaires
+            let allComments = [];
+            if (globalComments.trim()) {
+                allComments.push(globalComments);
+            }
+            
+            for (let i = 1; i <= 4; i++) {
+                const comments = document.getElementById(`criterion${i}-comments`).value;
+                if (comments.trim()) {
+                    const criterionNames = ['Contenu et exactitude', 'Méthodologie', 'Présentation et clarté', 'Respect des consignes'];
+                    allComments.push(`${criterionNames[i-1]}: ${comments}`);
+                }
+            }
+
+            const correction = {
+                id: currentEvaluation.copyId,
+                score: totalScore,
+                comments: allComments.join('\n\n'),
+                correctorId: currentUser.name,
+                date: new Date().toLocaleString('fr-FR')
+            };
+
+            corrections.push(correction);
+            
+            // Mettre à jour le statut de la copie
+            const copy = demoData.copiesToCorrect.find(c => c.id === currentEvaluation.copyId);
+            if (copy) {
+                copy.status = 'corrected';
+                copy.score = totalScore;
+            }
+
+            closeEvaluationModal();
+            loadCopiesForCorrection();
+            
+            showToast('Correction sauvegardée', `Note attribuée: ${totalScore}/20`, 'success');
+            
+            // Générer le bulletin PDF
+            generateGradeBulletin(correction);
+        }
+
+        function generateGradeBulletin(correction) {
+            if (typeof window.jsPDF === 'undefined') {
+                showToast('Erreur PDF', 'jsPDF non disponible', 'error');
+                return;
+            }
+
+            const { jsPDF } = window.jsPDF;
+            const doc = new jsPDF();
+
+            // En-tête
+            doc.setFontSize(20);
+            doc.text('BULLETIN DE CORRECTION', 20, 30);
+            
+            doc.setFontSize(12);
+            doc.text(`Date: ${correction.date}`, 20, 50);
+            doc.text(`Copie: ${correction.id}`, 20, 60);
+            doc.text(`Correcteur: ${correction.correctorId}`, 20, 70);
+            
+            // Note
+            doc.setFontSize(16);
+            doc.text(`NOTE FINALE: ${correction.score}/20`, 20, 90);
+            
+            // Commentaires
+            doc.setFontSize(12);
+            doc.text('COMMENTAIRES:', 20, 110);
+            
+            const splitComments = doc.splitTextToSize(correction.comments, 170);
+            doc.text(splitComments, 20, 120);
+
+            // Sauvegarder
+            doc.save(`bulletin_${correction.id}.pdf`);
+            
+            showToast('Bulletin généré', 'Le bulletin PDF a été téléchargé', 'success');
+        }
+
+        // Admin Functions
+        function switchAdminTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+                activeTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+
+            // Update content
+            document.querySelectorAll('.admin-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            const activeContent = document.getElementById(`admin-${tabName}`);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+        }
+
+        function updateAdminStats() {
+            const elements = {
+                'total-candidates': demoData.candidates + submissions.length,
+                'total-copies': demoData.copies + submissions.length,
+                'total-corrected': demoData.corrected + corrections.length,
+                'total-pending': demoData.pending + submissions.filter(s => s.status === 'pending').length
+            };
+
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+
+            updateRecentActivity();
+        }
+
+        function updateRecentActivity() {
+            const container = document.getElementById('recent-activity');
+            if (!container) return;
+
+            const activities = [
+                { icon: 'upload', text: 'Nouvelle copie déposée', time: 'Il y a 5 min', color: 'text-blue-600' },
+                { icon: 'check-circle', text: 'Copie corrigée', time: 'Il y a 15 min', color: 'text-green-600' },
+                { icon: 'user-plus', text: 'Nouveau candidat inscrit', time: 'Il y a 1h', color: 'text-purple-600' },
+                { icon: 'download', text: 'Export de données', time: 'Il y a 2h', color: 'text-orange-600' }
+            ];
+
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center space-x-3 p-2">
+                    <i data-lucide="${activity.icon}" class="w-4 h-4 ${activity.color}"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${activity.text}</p>
+                        <p class="text-xs text-gray-500">${activity.time}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function generateUniqueCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = 'CONC-';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            showToast('Code généré', `Nouveau code: ${code}`, 'success');
+        }
+
+        function exportData() {
+            const data = {
+                submissions: submissions,
+                corrections: corrections,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `concours_data_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Export terminé', 'Données exportées avec succès', 'success');
+        }
+
+        function viewStatistics() {
+            showToast('Statistiques', 'Module de statistiques avancées en développement', 'info');
+        }
+
+        function systemSettings() {
+            showToast('Paramètres', 'Interface de configuration en développement', 'info');
+        }
+
+        function generateBulkCodes() {
+            const count = parseInt(document.getElementById('code-count').value) || 10;
+            const prefix = document.getElementById('code-prefix').value || 'CONC';
+            const container = document.getElementById('generated-codes');
+            
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let suffix = '';
+                for (let j = 0; j < 6; j++) {
+                    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                const code = `${prefix}-${suffix}`;
+                
+                const div = document.createElement('div');
+                div.className = 'font-mono text-sm p-2 bg-gray-50 rounded border';
+                div.textContent = code;
+                container.appendChild(div);
+            }
+            
+            showToast('Codes générés', `${count} codes ont été générés`, 'success');
+        }
+
+        function exportCSV() {
+            const csvData = [
+                ['ID Anonyme', 'Note', 'Commentaires', 'Date Correction', 'Correcteur'],
+                ...corrections.map(c => [c.id, c.score, `"${c.comments.replace(/"/g, '""')}"`, c.date, c.correctorId])
+            ];
+            
+            const csvContent = csvData.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `corrections_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('CSV généré', 'Fichier CSV téléchargé', 'success');
+        }
+
+        function generateDetailedReport() {
+            const stats = {
+                totalCorrections: corrections.length,
+                averageScore: corrections.length > 0 ? corrections.reduce((sum, c) => sum + c.score, 0) / corrections.length : 0,
+                maxScore: corrections.length > 0 ? Math.max(...corrections.map(c => c.score)) : 0,
+                minScore: corrections.length > 0 ? Math.min(...corrections.map(c => c.score)) : 0
+            };
+
+            const reportContent = `
+RAPPORT DÉTAILLÉ DE CORRECTION
+==============================
+
+Date de génération: ${new Date().toLocaleString('fr-FR')}
+
+STATISTIQUES GÉNÉRALES
+----------------------
+Nombre total de corrections: ${stats.totalCorrections}
+Note moyenne: ${stats.averageScore.toFixed(2)}/20
+Note maximale: ${stats.maxScore}/20
+Note minimale: ${stats.minScore}/20
+
+DÉTAIL DES CORRECTIONS
+======================
+${corrections.map(c => `
+ID: ${c.id}
+Note: ${c.score}/20
+Date: ${c.date}
+Correcteur: ${c.correctorId}
+Commentaires: ${c.comments}
+${'='.repeat(50)}
+`).join('')}
+            `;
+
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rapport_detaille_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Rapport généré', 'Rapport détaillé téléchargé', 'success');
+        }
+
+        // Toast Functions
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white border rounded-lg shadow-lg p-4 min-w-80 ${
+                type === 'success' ? 'border-green-200' :
+                type === 'error' ? 'border-red-200' :
+                type === 'warning' ? 'border-yellow-200' :
+                'border-blue-200'
+            }`;
+
+            const iconMap = {
+                success: 'check-circle',
+                error: 'x-circle',
+                warning: 'alert-triangle',
+                info: 'info'
+            };
+
+            const colorMap = {
+                success: 'text-green-600',
+                error: 'text-red-600',
+                warning: 'text-yellow-600',
+                info: 'text-blue-600'
+            };
+
+            toast.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <i data-lucide="${iconMap[type]}" class="w-5 h-5 ${colorMap[type]} mt-0.5"></i>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-gray-900">${title}</h4>
+                        <p class="text-sm text-gray-600">${message}</p>
+                    </div>
+                    <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
+        // Demo Data Loading
+        function loadDemoData() {
+            // Charger quelques soumissions de démonstration pour l'admin
+            if (submissions.length === 0) {
+                const demoSubmissions = [
+                    {
+                        id: 'demo1',
+                        anonymousId: 'ANON-DEMO1',
+                        filename: 'copie_demo_math.pdf',
+                        uploadDate: new Date().toLocaleString('fr-FR'),
+                        status: 'pending',
+                        size: 1024 * 1024
+                    },
+                    {
+                        id: 'demo2',
+                        anonymousId: 'ANON-DEMO2',
+                        filename: 'copie_demo_physique.pdf',
+                        uploadDate: new Date().toLocaleString('fr-FR'),
+                        status: 'corrected',
+                        size: 2 * 1024 * 1024
+                    }
+                ];
+                
+                // Ne pas ajouter les données de démo par défaut pour éviter la confusion
+                // submissions.push(...demoSubmissions);
+            }
+        }
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
