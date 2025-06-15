@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/Header';
@@ -6,6 +5,7 @@ import HomePage from '@/pages/HomePage';
 import CandidateDashboard from '@/components/CandidateDashboard';
 import CorrectorDashboard from '@/components/CorrectorDashboard';
 import EvaluationGrid from '@/components/EvaluationGrid';
+import AdminDashboard from '@/components/AdminDashboard';
 import LoginModal from '@/components/LoginModal';
 
 export type UserRole = 'candidate' | 'corrector' | 'admin';
@@ -36,7 +36,13 @@ function App() {
   const handleLogin = (username: string, role: UserRole) => {
     setCurrentUser({ name: username, role });
     setShowLoginModal(false);
-    setCurrentPage(role === 'candidate' ? 'candidate' : 'corrector');
+    if (role === 'candidate') {
+      setCurrentPage('candidate');
+    } else if (role === 'corrector') {
+      setCurrentPage('corrector');
+    } else if (role === 'admin') {
+      setCurrentPage('admin');
+    }
   };
 
   const handleLogout = () => {
@@ -79,6 +85,12 @@ function App() {
             copies={submissions}
             onReturn={handleReturnHome}
             onOpenEvaluation={handleOpenEvaluation}
+          />
+        );
+      case 'admin':
+        return (
+          <AdminDashboard 
+            onReturn={handleReturnHome}
           />
         );
       case 'evaluation':
