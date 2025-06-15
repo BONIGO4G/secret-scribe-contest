@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,7 @@ interface EvaluationGridProps {
     anonymousId: string;
     filename: string;
   };
-  onSave: (score: number, comments: string, criteria: Criterion[]) => void;
+  onSave: (score: number, comments: string) => void;
   onCancel: () => void;
   initialScore?: number;
   initialComments?: string;
@@ -67,7 +66,7 @@ const EvaluationGrid = ({
       ...criteria.filter(c => c.comments.trim()).map(c => `${c.name}: ${c.comments}`)
     ].filter(Boolean).join('\n\n');
     
-    onSave(totalScore, allComments, criteria);
+    onSave(totalScore, allComments);
   };
 
   const getScoreColor = (score: number, maxScore: number) => {

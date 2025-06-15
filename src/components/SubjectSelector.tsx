@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Calculator, Flask, Globe, PenTool } from 'lucide-react';
+import { BookOpen, Calculator, Beaker, Globe, PenTool } from 'lucide-react';
 
 export type Subject = 'maths' | 'physique-chimie' | 'francais' | 'anglais';
 
@@ -26,7 +26,7 @@ const subjects: SubjectInfo[] = [
   {
     id: 'physique-chimie',
     name: 'Physique-Chimie',
-    icon: <Flask className="w-6 h-6" />,
+    icon: <Beaker className="w-6 h-6" />,
     color: 'bg-green-100 text-green-800',
     description: 'Copies de physique-chimie'
   },
