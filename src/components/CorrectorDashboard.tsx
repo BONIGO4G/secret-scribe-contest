@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CorrectorStats from './CorrectorStats';
 import CorrectorProgress from './CorrectorProgress';
 import CopiesList from './CopiesList';
+import SubjectSelector, { Subject } from './SubjectSelector';
 import { Copy } from '../App';
 
 interface CorrectorDashboardProps {
@@ -14,6 +15,17 @@ interface CorrectorDashboardProps {
 }
 
 const CorrectorDashboard = ({ copies, onReturn, onOpenEvaluation }: CorrectorDashboardProps) => {
+  const [selectedSubject, setSelectedSubject] = useState<Subject | undefined>();
+
+  // Filtrer les copies selon la matière sélectionnée
+  const filteredCopies = selectedSubject 
+    ? copies.filter(copy => copy.subject === selectedSubject)
+    : [];
+
+  const handleSubjectSelect = (subject: Subject) => {
+    setSelectedSubject(subject);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
@@ -29,9 +41,22 @@ const CorrectorDashboard = ({ copies, onReturn, onOpenEvaluation }: CorrectorDas
         </Button>
       </div>
 
-      <CorrectorStats copies={copies} />
-      <CorrectorProgress copies={copies} />
-      <CopiesList copies={copies} onOpenEvaluation={onOpenEvaluation} />
+      <SubjectSelector 
+        onSubjectSelect={handleSubjectSelect}
+        selectedSubject={selectedSubject}
+      />
+
+      {selectedSubject ? (
+        <>
+          <CorrectorStats copies={filteredCopies} />
+          <CorrectorProgress copies={filteredCopies} />
+          <CopiesList copies={filteredCopies} onOpenEvaluation={onOpenEvaluation} />
+        </>
+      ) : (
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-lg">Veuillez sélectionner une matière pour commencer la correction</p>
+        </div>
+      )}
     </div>
   );
 };

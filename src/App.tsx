@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/Header';
@@ -25,6 +24,7 @@ export interface Copy {
   status: 'pending' | 'in_progress' | 'corrected';
   score?: number;
   comments?: string;
+  subject?: 'maths' | 'physique-chimie' | 'francais' | 'anglais';
 }
 
 function App() {
