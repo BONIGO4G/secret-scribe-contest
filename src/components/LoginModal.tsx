@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,8 +29,9 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
       const regex = /^[A-Za-z0-9]{6,}$/;
       return regex.test(matricule);
     } else if (role === 'admin') {
-      // Admin : pas de restriction particulière
-      return matricule.length >= 4;
+      // Admin : AD + 4 chiffres + AK
+      const regex = /^AD\d{4}AK$/;
+      return regex.test(matricule);
     }
     return false;
   };
@@ -42,7 +42,7 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
     } else if (role === 'corrector') {
       return 'Le matricule de service doit contenir au minimum 6 caractères alphanumériques';
     } else if (role === 'admin') {
-      return 'Le matricule administrateur doit contenir au minimum 4 caractères';
+      return 'Le matricule administrateur doit commencer par AD, suivi de 4 chiffres et se terminer par AK (ex: AD1234AK)';
     }
     return '';
   };
@@ -87,7 +87,7 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
     } else if (role === 'corrector') {
       return 'PROF123456';
     } else if (role === 'admin') {
-      return 'ADMIN01';
+      return 'AD1234AK';
     }
     return 'Votre matricule';
   };
@@ -136,7 +136,7 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
               placeholder={getPlaceholder()}
               required
               className={`mt-1 ${error ? 'border-red-500 focus:border-red-500' : ''}`}
-              maxLength={role === 'candidate' ? 8 : undefined}
+              maxLength={role === 'candidate' ? 8 : role === 'admin' ? 8 : undefined}
             />
             {role === 'candidate' && (
               <p className="mt-1 text-xs text-gray-500">
@@ -146,6 +146,11 @@ const LoginModal = ({ show, onClose, onLogin }: LoginModalProps) => {
             {role === 'corrector' && (
               <p className="mt-1 text-xs text-gray-500">
                 Minimum 6 caractères alphanumériques
+              </p>
+            )}
+            {role === 'admin' && (
+              <p className="mt-1 text-xs text-gray-500">
+                Format: AD + 4 chiffres + AK (ex: AD1234AK)
               </p>
             )}
           </div>
