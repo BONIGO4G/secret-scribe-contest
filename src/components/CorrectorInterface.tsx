@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Download, FileText } from 'lucide-react';
+import { Upload, Download, FileText, FileCheck } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -393,6 +393,120 @@ const CorrectorInterface = () => {
     doc.save(`rapport-resultats_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
+  const generateBulletinPDF = (copie: Copy) => {
+    if (!window.jsPDF) {
+      setError('Erreur: jsPDF n\'est pas chargé');
+      return;
+    }
+
+    const { jsPDF } = window;
+    const doc = new jsPDF('portrait');
+    
+    // En-tête du bulletin
+    doc.setFillColor(51, 65, 85);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text('BULLETIN DE RÉSULTATS', 105, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('Examen National', 105, 30, { align: 'center' });
+    
+    // Informations de l'étudiant
+    doc.setTextColor(51, 65, 85);
+    doc.setFontSize(14);
+    doc.text('INFORMATIONS DE L\'ÉTUDIANT', 20, 60);
+    
+    doc.setFontSize(11);
+    doc.text(`Matricule: ${copie.matricule}`, 20, 75);
+    doc.text(`Centre de Composition: ${copie.centreComposition}`, 20, 85);
+    doc.text(`Date d'examen: ${new Date(copie.date).toLocaleDateString()}`, 20, 95);
+    doc.text(`ID Copie: ${copie.id}`, 20, 105);
+    
+    // Informations du correcteur
+    doc.setFontSize(14);
+    doc.text('CORRECTEUR', 20, 125);
+    
+    doc.setFontSize(11);
+    doc.text(`Professeur: ${copie.prenomProf} ${copie.nomProf}`, 20, 140);
+    doc.text(`Établissement: ${copie.etablissementProf}`, 20, 150);
+    
+    // Notes détaillées
+    doc.setFontSize(14);
+    doc.text('NOTES PAR MATIÈRE', 20, 170);
+    
+    const matieres = [
+      { nom: 'Mathématiques', note: copie.notes.maths },
+      { nom: 'Français', note: copie.notes.francais },
+      { nom: 'Physique-Chimie', note: copie.notes.physiqueChimie },
+      { nom: 'Histoire-Géographie', note: copie.notes.histoireGeo },
+      { nom: 'Anglais', note: copie.notes.anglais }
+    ];
+    
+    let yPosition = 185;
+    matieres.forEach((matiere, index) => {
+      doc.setFontSize(11);
+      doc.text(`${matiere.nom}:`, 25, yPosition);
+      doc.text(`${matiere.note}/20`, 150, yPosition);
+      
+      // Barre de progression visuelle
+      const noteWidth = (matiere.note / 20) * 80;
+      doc.setFillColor(220, 220, 220);
+      doc.rect(25, yPosition + 2, 80, 4, 'F');
+      
+      if (matiere.note >= 12) {
+        doc.setFillColor(34, 197, 94); // Vert
+      } else if (matiere.note >= 8) {
+        doc.setFillColor(251, 191, 36); // Orange
+      } else {
+        doc.setFillColor(239, 68, 68); // Rouge
+      }
+      doc.rect(25, yPosition + 2, noteWidth, 4, 'F');
+      
+      yPosition += 15;
+    });
+    
+    // Résultats finaux
+    yPosition += 10;
+    doc.setFillColor(248, 250, 252);
+    doc.rect(15, yPosition, 180, 40, 'F');
+    
+    doc.setTextColor(51, 65, 85);
+    doc.setFontSize(16);
+    doc.text('RÉSULTATS FINAUX', 105, yPosition + 15, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.text(`Moyenne Générale: ${copie.moyenne.toFixed(2)}/20`, 25, yPosition + 25);
+    doc.text(`Mention: ${copie.mention}`, 25, yPosition + 35);
+    
+    // Statut avec couleur
+    if (copie.statut === 'ADMIS') {
+      doc.setTextColor(34, 197, 94);
+    } else {
+      doc.setTextColor(239, 68, 68);
+    }
+    doc.setFontSize(16);
+    doc.text(`STATUT: ${copie.statut}`, 105, yPosition + 35, { align: 'center' });
+    
+    // Code-barres si disponible
+    if (copie.barcode) {
+      yPosition += 60;
+      doc.setTextColor(51, 65, 85);
+      doc.setFontSize(10);
+      doc.text('Code d\'identification:', 20, yPosition);
+      
+      // Convertir le data URL en image
+      const img = new Image();
+      img.onload = function() {
+        doc.addImage(copie.barcode!, 'PNG', 20, yPosition + 5, 80, 20);
+        doc.save(`bulletin-${copie.matricule}-${copie.id}.pdf`);
+      };
+      img.src = copie.barcode;
+    } else {
+      doc.save(`bulletin-${copie.matricule}-${copie.id}.pdf`);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
       <Card className="w-full max-w-6xl">
@@ -699,6 +813,7 @@ const CorrectorInterface = () => {
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Moyenne</th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Mention</th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Statut</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-slate-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -716,6 +831,17 @@ const CorrectorInterface = () => {
                           <Badge variant={copie.statut === "ADMIS" ? "default" : "destructive"} className="text-xs">
                             {copie.statut}
                           </Badge>
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => generateBulletinPDF(copie)}
+                            className="text-xs"
+                          >
+                            <FileCheck className="w-3 h-3 mr-1" />
+                            Bulletin PDF
+                          </Button>
                         </td>
                       </tr>
                     ))}
