@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -229,10 +228,13 @@ const CorrectorInterface = () => {
 
     // Vérifier que toutes les notes saisies sont valides (0-20)
     for (const [matiere, note] of Object.entries(formData.notes)) {
-      if (note !== '' && (parseFloat(note) < 0 || parseFloat(note) > 20)) {
-        setError(`La note de ${matiere} doit être entre 0 et 20.`);
-        setIsSubmitting(false);
-        return;
+      if (note !== '') {
+        const noteValue = parseFloat(note);
+        if (isNaN(noteValue) || noteValue < 0 || noteValue > 20) {
+          setError(`La note de ${matiere} doit être un nombre entre 0 et 20.`);
+          setIsSubmitting(false);
+          return;
+        }
       }
     }
 
@@ -488,7 +490,15 @@ const CorrectorInterface = () => {
             
             {/* Section Notes */}
             <div className="space-y-4">
-              <h3 className="font-medium text-slate-700">Notes par Matière (0-20)</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-slate-700">Notes par Matière</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    Limite: 0 - 20 points
+                  </Badge>
+                  <span className="text-xs text-slate-500">Décimales autorisées</span>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <Label>Mathématiques</Label>
@@ -499,8 +509,10 @@ const CorrectorInterface = () => {
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="0.00"
+                    placeholder="0.00 - 20.00"
+                    className="text-center"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
                 </div>
                 <div>
                   <Label>Français</Label>
@@ -511,8 +523,10 @@ const CorrectorInterface = () => {
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="0.00"
+                    placeholder="0.00 - 20.00"
+                    className="text-center"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
                 </div>
                 <div>
                   <Label>Physique-Chimie</Label>
@@ -523,8 +537,10 @@ const CorrectorInterface = () => {
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="0.00"
+                    placeholder="0.00 - 20.00"
+                    className="text-center"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
                 </div>
                 <div>
                   <Label>Histoire-Géographie</Label>
@@ -535,8 +551,10 @@ const CorrectorInterface = () => {
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="0.00"
+                    placeholder="0.00 - 20.00"
+                    className="text-center"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
                 </div>
                 <div>
                   <Label>Anglais</Label>
@@ -547,9 +565,17 @@ const CorrectorInterface = () => {
                     min="0"
                     max="20"
                     step="0.01"
-                    placeholder="0.00"
+                    placeholder="0.00 - 20.00"
+                    className="text-center"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
                 </div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Instructions:</strong> Saisissez les notes obtenues dans chaque matière. 
+                  Chaque note doit être comprise entre 0 et 20 points. Les décimales sont autorisées (ex: 15.5).
+                </p>
               </div>
             </div>
 
