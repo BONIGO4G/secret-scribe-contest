@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/Header';
@@ -9,7 +10,7 @@ import AdminDashboard from '@/components/AdminDashboard';
 import LoginModal from '@/components/LoginModal';
 
 export type UserRole = 'candidate' | 'corrector' | 'admin';
-export type PageType = 'home' | 'candidate' | 'corrector' | 'evaluation';
+export type PageType = 'home' | 'candidate' | 'corrector' | 'evaluation' | 'admin';
 
 export interface User {
   name: string;
