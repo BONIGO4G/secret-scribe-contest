@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Download, Calculator, FileText } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Download, Calculator, FileText, UserCheck, UserX, Users, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface StudentResult {
@@ -307,57 +308,235 @@ LÉGENDE DES MATIÈRES:
               Aucun résultat enregistré
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Matricule</TableHead>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Prénom</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Moyenne</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-mono">{student.matricule}</TableCell>
-                    <TableCell className="font-medium">{student.nom}</TableCell>
-                    <TableCell>{student.prenom}</TableCell>
-                     <TableCell>
-                       <div className="text-sm space-y-1">
-                         {matieres.map((matiere, index) => (
-                           <div key={matiere}>
-                             {matiere}: {student.notes[index]}/20
-                           </div>
-                         ))}
-                       </div>
-                     </TableCell>
-                    <TableCell>
-                      <span className="font-bold">{student.moyenne}/20</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={student.statut === 'admis' ? 'default' : 'destructive'}
-                      >
-                        {student.statut.toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => generatePDF(student)}
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        PDF
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Tabs defaultValue="tous" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="tous" className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>Tous ({students.length})</span>
+                </TabsTrigger>
+                <TabsTrigger value="admis" className="flex items-center space-x-2">
+                  <UserCheck className="w-4 h-4" />
+                  <span>Admis ({students.filter(s => s.statut === 'admis').length})</span>
+                </TabsTrigger>
+                <TabsTrigger value="echec" className="flex items-center space-x-2">
+                  <UserX className="w-4 h-4" />
+                  <span>Échecs ({students.filter(s => s.statut === 'echec').length})</span>
+                </TabsTrigger>
+                <TabsTrigger value="stats" className="flex items-center space-x-2">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Statistiques</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="tous" className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Matricule</TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Prénom</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Moyenne</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-mono">{student.matricule}</TableCell>
+                        <TableCell className="font-medium">{student.nom}</TableCell>
+                        <TableCell>{student.prenom}</TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {matieres.map((matiere, index) => (
+                              <div key={matiere}>
+                                {matiere}: {student.notes[index]}/20
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-bold">{student.moyenne}/20</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={student.statut === 'admis' ? 'default' : 'destructive'}
+                          >
+                            {student.statut.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => generatePDF(student)}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            PDF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="admis" className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Matricule</TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Prénom</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Moyenne</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.filter(student => student.statut === 'admis').map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-mono">{student.matricule}</TableCell>
+                        <TableCell className="font-medium">{student.nom}</TableCell>
+                        <TableCell>{student.prenom}</TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {matieres.map((matiere, index) => (
+                              <div key={matiere}>
+                                {matiere}: {student.notes[index]}/20
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-bold text-green-600">{student.moyenne}/20</span>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => generatePDF(student)}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            PDF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {students.filter(s => s.statut === 'admis').length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun étudiant admis
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="echec" className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Matricule</TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Prénom</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Moyenne</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.filter(student => student.statut === 'echec').map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-mono">{student.matricule}</TableCell>
+                        <TableCell className="font-medium">{student.nom}</TableCell>
+                        <TableCell>{student.prenom}</TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {matieres.map((matiere, index) => (
+                              <div key={matiere}>
+                                {matiere}: {student.notes[index]}/20
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-bold text-red-600">{student.moyenne}/20</span>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => generatePDF(student)}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            PDF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {students.filter(s => s.statut === 'echec').length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun étudiant en échec
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="stats" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Total étudiants</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{students.length}</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Étudiants admis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {students.filter(s => s.statut === 'admis').length}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Étudiants en échec</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-600">
+                        {students.filter(s => s.statut === 'echec').length}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Taux de réussite</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {students.length > 0 ? Math.round((students.filter(s => s.statut === 'admis').length / students.length) * 100) : 0}%
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Moyenne générale</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {students.length > 0 ? Math.round((students.reduce((sum, s) => sum + s.moyenne, 0) / students.length) * 100) / 100 : 0}/20
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
         </CardContent>
       </Card>
