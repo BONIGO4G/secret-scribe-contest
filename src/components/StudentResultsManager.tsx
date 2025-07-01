@@ -24,25 +24,27 @@ const StudentResultsManager = () => {
     nom: '',
     prenom: '',
     matricule: '',
-    note1: '',
-    note2: '',
-    note3: '',
-    note4: ''
+    noteMaths: '',
+    notePC: '',
+    noteAnglais: '',
+    noteFrancais: ''
   });
+
+  const matieres = ['Maths', 'Physique-Chimie', 'Anglais', 'Français'];
 
   const calculateAverage = (notes: number[]) => {
     return notes.reduce((sum, note) => sum + note, 0) / notes.length;
   };
 
   const handleAddStudent = () => {
-    const { nom, prenom, matricule, note1, note2, note3, note4 } = formData;
+    const { nom, prenom, matricule, noteMaths, notePC, noteAnglais, noteFrancais } = formData;
     
-    if (!nom || !prenom || !matricule || !note1 || !note2 || !note3 || !note4) {
+    if (!nom || !prenom || !matricule || !noteMaths || !notePC || !noteAnglais || !noteFrancais) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
 
-    const notes = [parseFloat(note1), parseFloat(note2), parseFloat(note3), parseFloat(note4)];
+    const notes = [parseFloat(noteMaths), parseFloat(notePC), parseFloat(noteAnglais), parseFloat(noteFrancais)];
     
     if (notes.some(note => isNaN(note) || note < 0 || note > 20)) {
       toast.error('Les notes doivent être entre 0 et 20');
@@ -67,10 +69,10 @@ const StudentResultsManager = () => {
       nom: '',
       prenom: '',
       matricule: '',
-      note1: '',
-      note2: '',
-      note3: '',
-      note4: ''
+      noteMaths: '',
+      notePC: '',
+      noteAnglais: '',
+      noteFrancais: ''
     });
 
     toast.success(`Étudiant ajouté - ${statut.toUpperCase()}`);
@@ -85,10 +87,10 @@ Prénom: ${student.prenom}
 Matricule: ${student.matricule}
 
 NOTES:
-- Note 1: ${student.notes[0]}/20
-- Note 2: ${student.notes[1]}/20  
-- Note 3: ${student.notes[2]}/20
-- Note 4: ${student.notes[3]}/20
+- Maths: ${student.notes[0]}/20
+- Physique-Chimie: ${student.notes[1]}/20  
+- Anglais: ${student.notes[2]}/20
+- Français: ${student.notes[3]}/20
 
 MOYENNE: ${student.moyenne}/20
 
@@ -163,54 +165,54 @@ Date de génération: ${new Date().toLocaleDateString('fr-FR')}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div>
-              <Label htmlFor="note1">Note 1 (/20)</Label>
+              <Label htmlFor="noteMaths">Maths (/20)</Label>
               <Input
-                id="note1"
+                id="noteMaths"
                 type="number"
                 min="0"
                 max="20"
                 step="0.25"
-                value={formData.note1}
-                onChange={(e) => setFormData({...formData, note1: e.target.value})}
+                value={formData.noteMaths}
+                onChange={(e) => setFormData({...formData, noteMaths: e.target.value})}
                 placeholder="0.00"
               />
             </div>
             <div>
-              <Label htmlFor="note2">Note 2 (/20)</Label>
+              <Label htmlFor="notePC">Physique-Chimie (/20)</Label>
               <Input
-                id="note2"
+                id="notePC"
                 type="number"
                 min="0"
                 max="20"
                 step="0.25"
-                value={formData.note2}
-                onChange={(e) => setFormData({...formData, note2: e.target.value})}
+                value={formData.notePC}
+                onChange={(e) => setFormData({...formData, notePC: e.target.value})}
                 placeholder="0.00"
               />
             </div>
             <div>
-              <Label htmlFor="note3">Note 3 (/20)</Label>
+              <Label htmlFor="noteAnglais">Anglais (/20)</Label>
               <Input
-                id="note3"
+                id="noteAnglais"
                 type="number"
                 min="0"
                 max="20"
                 step="0.25"
-                value={formData.note3}
-                onChange={(e) => setFormData({...formData, note3: e.target.value})}
+                value={formData.noteAnglais}
+                onChange={(e) => setFormData({...formData, noteAnglais: e.target.value})}
                 placeholder="0.00"
               />
             </div>
             <div>
-              <Label htmlFor="note4">Note 4 (/20)</Label>
+              <Label htmlFor="noteFrancais">Français (/20)</Label>
               <Input
-                id="note4"
+                id="noteFrancais"
                 type="number"
                 min="0"
                 max="20"
                 step="0.25"
-                value={formData.note4}
-                onChange={(e) => setFormData({...formData, note4: e.target.value})}
+                value={formData.noteFrancais}
+                onChange={(e) => setFormData({...formData, noteFrancais: e.target.value})}
                 placeholder="0.00"
               />
             </div>
@@ -254,11 +256,15 @@ Date de génération: ${new Date().toLocaleDateString('fr-FR')}
                     <TableCell className="font-mono">{student.matricule}</TableCell>
                     <TableCell className="font-medium">{student.nom}</TableCell>
                     <TableCell>{student.prenom}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {student.notes.join(' - ')}
-                      </div>
-                    </TableCell>
+                     <TableCell>
+                       <div className="text-sm space-y-1">
+                         {matieres.map((matiere, index) => (
+                           <div key={matiere}>
+                             {matiere}: {student.notes[index]}/20
+                           </div>
+                         ))}
+                       </div>
+                     </TableCell>
                     <TableCell>
                       <span className="font-bold">{student.moyenne}/20</span>
                     </TableCell>
