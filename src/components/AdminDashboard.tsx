@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Settings, Upload, Users, BarChart3, Hash, ArrowLeft } from 'lucide-react';
+import { Settings, Upload, Users, BarChart3, Hash, ArrowLeft, GraduationCap } from 'lucide-react';
 import UploadInterface from './UploadInterface';
 import ExportReports from './ExportReports';
 import UniqueCodeGenerator from './UniqueCodeGenerator';
+import StudentResultsManager from './StudentResultsManager';
 import { Copy } from '../App';
 
 interface AdminDashboardProps {
@@ -47,7 +48,7 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="upload" className="flex items-center space-x-2">
             <Upload className="w-4 h-4" />
             <span>Upload</span>
@@ -55,6 +56,10 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
           <TabsTrigger value="codes" className="flex items-center space-x-2">
             <Hash className="w-4 h-4" />
             <span>Codes</span>
+          </TabsTrigger>
+          <TabsTrigger value="results" className="flex items-center space-x-2">
+            <GraduationCap className="w-4 h-4" />
+            <span>Résultats</span>
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center space-x-2">
             <BarChart3 className="w-4 h-4" />
@@ -72,6 +77,10 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
 
         <TabsContent value="codes">
           <UniqueCodeGenerator />
+        </TabsContent>
+
+        <TabsContent value="results">
+          <StudentResultsManager />
         </TabsContent>
 
         <TabsContent value="reports">
