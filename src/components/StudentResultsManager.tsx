@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Download, Calculator } from 'lucide-react';
+import { Plus, Download, Calculator, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface StudentResult {
@@ -111,6 +111,61 @@ Date de génération: ${new Date().toLocaleDateString('fr-FR')}
     URL.revokeObjectURL(url);
 
     toast.success('Fichier des résultats téléchargé');
+  };
+
+  const generateAllStudentsPDF = () => {
+    if (students.length === 0) {
+      toast.error('Aucun étudiant à exporter');
+      return;
+    }
+
+    const header = `RÉCAPITULATIF DES RÉSULTATS - CONCOURS
+Date de génération: ${new Date().toLocaleDateString('fr-FR')}
+Nombre d'étudiants: ${students.length}
+
+================================================================================
+| MATRICULE    | NOM              | PRÉNOM          | MATHS | P-C   | ANG   | FR    | MOY   | STATUT |
+================================================================================`;
+
+    const rows = students.map(student => {
+      const matricule = student.matricule.padEnd(12);
+      const nom = student.nom.substring(0, 16).padEnd(16);
+      const prenom = student.prenom.substring(0, 15).padEnd(15);
+      const notes = student.notes.map(note => note.toString().padStart(5)).join(' | ');
+      const moyenne = student.moyenne.toString().padStart(5);
+      const statut = student.statut.toUpperCase().padEnd(6);
+      
+      return `| ${matricule} | ${nom} | ${prenom} | ${notes} | ${moyenne} | ${statut} |`;
+    }).join('\n');
+
+    const footer = `================================================================================
+
+STATISTIQUES:
+- Total étudiants: ${students.length}
+- Admis: ${students.filter(s => s.statut === 'admis').length}
+- Échecs: ${students.filter(s => s.statut === 'echec').length}
+- Taux de réussite: ${students.length > 0 ? Math.round((students.filter(s => s.statut === 'admis').length / students.length) * 100) : 0}%
+
+LÉGENDE DES MATIÈRES:
+- MATHS: Mathématiques
+- P-C: Physique-Chimie  
+- ANG: Anglais
+- FR: Français
+`;
+
+    const pdfContent = header + '\n' + rows + '\n' + footer;
+
+    const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `recapitulatif_resultats_concours_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Récapitulatif des résultats téléchargé');
   };
 
   return (
@@ -227,10 +282,24 @@ Date de génération: ${new Date().toLocaleDateString('fr-FR')}
 
       <Card>
         <CardHeader>
-          <CardTitle>Liste des résultats</CardTitle>
-          <CardDescription>
-            {students.length} étudiant(s) enregistré(s)
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Liste des résultats</CardTitle>
+              <CardDescription>
+                {students.length} étudiant(s) enregistré(s)
+              </CardDescription>
+            </div>
+            {students.length > 0 && (
+              <Button 
+                onClick={generateAllStudentsPDF}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Exporter tout</span>
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {students.length === 0 ? (
