@@ -7,6 +7,7 @@ import { Settings, Upload, Users, BarChart3, Hash, ArrowLeft } from 'lucide-reac
 import UploadInterface from './UploadInterface';
 import ExportReports from './ExportReports';
 import UniqueCodeGenerator from './UniqueCodeGenerator';
+import TeacherAccountManager from './TeacherAccountManager';
 import { Copy } from '../App';
 
 interface AdminDashboardProps {
@@ -47,10 +48,14 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="upload" className="flex items-center space-x-2">
             <Upload className="w-4 h-4" />
             <span>Upload</span>
+          </TabsTrigger>
+          <TabsTrigger value="teachers" className="flex items-center space-x-2">
+            <Users className="w-4 h-4" />
+            <span>Professeurs</span>
           </TabsTrigger>
           <TabsTrigger value="codes" className="flex items-center space-x-2">
             <Hash className="w-4 h-4" />
@@ -68,6 +73,10 @@ const AdminDashboard = ({ onReturn }: AdminDashboardProps) => {
 
         <TabsContent value="upload">
           <UploadInterface />
+        </TabsContent>
+
+        <TabsContent value="teachers">
+          <TeacherAccountManager />
         </TabsContent>
 
         <TabsContent value="codes">
