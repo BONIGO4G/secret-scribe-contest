@@ -12,8 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface TeacherAccount {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  address: string;
+  phone: string;
   subject: string;
   accessCode: string;
   createdAt: string;
@@ -25,8 +28,11 @@ const TeacherAccountManager = () => {
   const [teachers, setTeachers] = useState<TeacherAccount[]>([
     {
       id: '1',
-      name: 'Prof. Martin Dupont',
+      firstName: 'Martin',
+      lastName: 'Dupont',
       email: 'martin.dupont@education.fr',
+      address: '15 rue de la République, 75001 Paris',
+      phone: '0123456789',
       subject: 'Mathématiques',
       accessCode: 'CORR-ABC123-XYZ789',
       createdAt: '2024-01-15',
@@ -35,8 +41,11 @@ const TeacherAccountManager = () => {
     },
     {
       id: '2',
-      name: 'Prof. Sophie Bernard',
+      firstName: 'Sophie',
+      lastName: 'Bernard',
       email: 'sophie.bernard@education.fr',
+      address: '8 avenue Victor Hugo, 69002 Lyon',
+      phone: '0198765432',
       subject: 'Physique-Chimie',
       accessCode: 'CORR-DEF456-UVW012',
       createdAt: '2024-01-16',
@@ -45,8 +54,11 @@ const TeacherAccountManager = () => {
   ]);
 
   const [newTeacher, setNewTeacher] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    address: '',
+    phone: '',
     subject: ''
   });
   const [showDialog, setShowDialog] = useState(false);
@@ -70,7 +82,7 @@ const TeacherAccountManager = () => {
   };
 
   const handleCreateAccount = () => {
-    if (!newTeacher.name || !newTeacher.email || !newTeacher.subject) {
+    if (!newTeacher.firstName || !newTeacher.lastName || !newTeacher.email || !newTeacher.address || !newTeacher.phone || !newTeacher.subject) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs",
@@ -81,8 +93,11 @@ const TeacherAccountManager = () => {
 
     const newAccount: TeacherAccount = {
       id: Date.now().toString(),
-      name: newTeacher.name,
+      firstName: newTeacher.firstName,
+      lastName: newTeacher.lastName,
       email: newTeacher.email,
+      address: newTeacher.address,
+      phone: newTeacher.phone,
       subject: newTeacher.subject,
       accessCode: generateAccessCode(),
       createdAt: new Date().toISOString().split('T')[0],
@@ -90,12 +105,12 @@ const TeacherAccountManager = () => {
     };
 
     setTeachers(prev => [...prev, newAccount]);
-    setNewTeacher({ name: '', email: '', subject: '' });
+    setNewTeacher({ firstName: '', lastName: '', email: '', address: '', phone: '', subject: '' });
     setShowDialog(false);
 
     toast({
       title: "Compte créé",
-      description: `Compte créé pour ${newTeacher.name}. Code d'accès généré.`,
+      description: `Compte créé pour ${newTeacher.firstName} ${newTeacher.lastName}. Code d'accès généré.`,
     });
   };
 
@@ -120,7 +135,7 @@ const TeacherAccountManager = () => {
     
     toast({
       title: "Compte supprimé",
-      description: `Le compte de ${teacher?.name} a été supprimé`,
+      description: `Le compte de ${teacher?.firstName} ${teacher?.lastName} a été supprimé`,
     });
   };
 
@@ -160,15 +175,26 @@ const TeacherAccountManager = () => {
                     Remplissez les informations du nouveau professeur
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="teacher-name">Nom complet</Label>
-                    <Input
-                      id="teacher-name"
-                      placeholder="Prof. Jean Dupont"
-                      value={newTeacher.name}
-                      onChange={(e) => setNewTeacher(prev => ({ ...prev, name: e.target.value }))}
-                    />
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="teacher-firstName">Prénom</Label>
+                      <Input
+                        id="teacher-firstName"
+                        placeholder="Jean"
+                        value={newTeacher.firstName}
+                        onChange={(e) => setNewTeacher(prev => ({ ...prev, firstName: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="teacher-lastName">Nom</Label>
+                      <Input
+                        id="teacher-lastName"
+                        placeholder="Dupont"
+                        value={newTeacher.lastName}
+                        onChange={(e) => setNewTeacher(prev => ({ ...prev, lastName: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="teacher-email">Email</Label>
@@ -178,6 +204,24 @@ const TeacherAccountManager = () => {
                       placeholder="jean.dupont@education.fr"
                       value={newTeacher.email}
                       onChange={(e) => setNewTeacher(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="teacher-address">Adresse</Label>
+                    <Input
+                      id="teacher-address"
+                      placeholder="15 rue de la République, 75001 Paris"
+                      value={newTeacher.address}
+                      onChange={(e) => setNewTeacher(prev => ({ ...prev, address: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="teacher-phone">Téléphone</Label>
+                    <Input
+                      id="teacher-phone"
+                      placeholder="0123456789"
+                      value={newTeacher.phone}
+                      onChange={(e) => setNewTeacher(prev => ({ ...prev, phone: e.target.value }))}
                     />
                   </div>
                   <div>
@@ -263,10 +307,16 @@ const TeacherAccountManager = () => {
                 <TableRow key={teacher.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{teacher.name}</div>
+                      <div className="font-medium">{teacher.firstName} {teacher.lastName}</div>
                       <div className="text-sm text-muted-foreground flex items-center">
                         <Mail className="w-3 h-3 mr-1" />
                         {teacher.email}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        📍 {teacher.address}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        📞 {teacher.phone}
                       </div>
                     </div>
                   </TableCell>
@@ -291,7 +341,7 @@ const TeacherAccountManager = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyAccessCode(teacher.accessCode, teacher.name)}
+                        onClick={() => copyAccessCode(teacher.accessCode, `${teacher.firstName} ${teacher.lastName}`)}
                       >
                         <Copy className="w-3 h-3" />
                       </Button>

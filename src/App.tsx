@@ -96,6 +96,7 @@ function App() {
             copies={submissions}
             onReturn={handleReturnHome}
             onOpenEvaluation={handleOpenEvaluation}
+            currentUser={currentUser}
           />
         );
       case 'admin':
