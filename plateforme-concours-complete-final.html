@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plateforme de Concours - Système Complet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-button:hover {
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .upload-zone {
+            border: 3px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Plateforme de Concours</h1>
+            <p>Système complet de gestion des concours avec correction anonyme</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('candidat')">👤 Candidat</button>
+                <button class="tab-button" onclick="showTab('correcteur')">✏️ Correcteur</button>
+                <button class="tab-button" onclick="showTab('admin')">⚙️ Administration</button>
+                <button class="tab-button" onclick="showTab('resultats')">📊 Résultats</button>
+                <button class="tab-button" onclick="showTab('codes')">🔢 Codes Uniques</button>
+            </div>
+
+            <!-- ONGLET CANDIDAT -->
+            <div id="candidat" class="tab-content active">
+                <div class="card">
+                    <h3>📤 Dépôt de copie</h3>
+                    <p style="color: #6b7280; margin-bottom: 20px;">Déposez votre copie pour le concours. Un identifiant anonyme sera généré automatiquement.</p>
+                    
+                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📁</div>
+                        <p><strong>Cliquez pour sélectionner un fichier</strong></p>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">Formats acceptés : PDF, ZIP (max 10 MB)</p>
+                        <input type="file" id="fileInput" accept=".pdf,.zip" style="display: none;" onchange="handleFileUpload(this)">
+                    </div>
+
+                    <div id="uploadAlert" class="alert hidden"></div>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Mes copies déposées</h3>
+                    <div id="submissionsList">
+                        <p style="color: #6b7280; text-align: center; padding: 20px;">Aucune copie déposée</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ONGLET CORRECTEUR -->
+            <div id="correcteur" class="tab-content">
+                <div class="card">
+                    <h3>🔐 Authentification Correcteur</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="matriculeCorrecteur">Matricule de service</label>
+                            <input type="text" id="matriculeCorrecteur" placeholder="PROF123456">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="loginCorrecteur()">Se connecter</button>
+                        </div>
+                    </div>
+                    <div id="correctorAlert" class="alert hidden"></div>
+                </div>
+
+                <div id="correctorDashboard" class="hidden">
+                    <div class="card">
+                        <h3>📚 Copies à corriger</h3>
+                        <div class="progress-bar">
+                            <div id="correctionProgress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText">0 copie(s) corrigée(s) sur 0</p>
+                        
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID Anonyme</th>
+                                    <th>Date de dépôt</th>
+                                    <th>Statut</th>
+                                    <th>Note</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="copiesToCorrect">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #6b7280;">Aucune copie à corriger</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Grille d'évaluation -->
+                    <div id="evaluationGrid" class="card hidden">
+                        <h3>📝 Grille d'évaluation</h3>
+                        <div id="currentCopyInfo" style="background: #f8fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px;"></div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="note1">Critère 1 - Compréhension du sujet (/5)</label>
+                                <input type="number" id="note1" min="0" max="5" step="0.5" onchange="calculateTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label for="note2">Critère 2 - Méthode et raisonnement (/5)</label>
+                                <input type="number" id="note2" min="0" max="5" step="0.5" onchange="calculateTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label for="note3">Critère 3 - Résultats et calculs (/5)</label>
+                                <input type="number" id="note3" min="0" max="5" step="0.5" onchange="calculateTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label for="note4">Critère 4 - Présentation et clarté (/5)</label>
+                                <input type="number" id="note4" min="0" max="5" step="0.5" onchange="calculateTotal()">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noteTotal">Note totale (/20)</label>
+                            <input type="number" id="noteTotal" min="0" max="20" step="0.5" readonly style="background: #f8fafc; font-weight: bold; font-size: 1.2rem;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="commentaires">Commentaires</label>
+                            <textarea id="commentaires" rows="4" placeholder="Commentaires détaillés sur la copie..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" onclick="saveEvaluation()">💾 Sauvegarder l'évaluation</button>
+                            <button class="btn btn-outline" onclick="closeEvaluation()">❌ Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ONGLET ADMINISTRATION -->
+            <div id="admin" class="tab-content">
+                <div class="card">
+                    <h3>🔐 Authentification Admin</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adminPassword">Mot de passe administrateur</label>
+                            <input type="password" id="adminPassword" placeholder="Mot de passe">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="loginAdmin()">Se connecter</button>
+                        </div>
+                    </div>
+                    <div id="adminAlert" class="alert hidden"></div>
+                </div>
+
+                <div id="adminDashboard" class="hidden">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalCopies">0</div>
+                            <div class="stat-label">Copies totales</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="copiesCorrigees">0</div>
+                            <div class="stat-label">Copies corrigées</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="moyenneGenerale">0</div>
+                            <div class="stat-label">Moyenne générale</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="tauxReussite">0%</div>
+                            <div class="stat-label">Taux de réussite</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📊 Gestion des données</h3>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn" onclick="exportResults()">📊 Exporter les résultats</button>
+                            <button class="btn btn-outline" onclick="importStudents()">📥 Importer étudiants</button>
+                            <button class="btn btn-danger" onclick="resetSystem()">🗑️ Réinitialiser le système</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>📋 Liste de toutes les copies</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID Anonyme</th>
+                                    <th>Fichier</th>
+                                    <th>Date dépôt</th>
+                                    <th>Statut</th>
+                                    <th>Note</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allCopiesList">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #6b7280;">Aucune copie</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ONGLET RESULTATS -->
+            <div id="resultats" class="tab-content">
+                <div class="card">
+                    <h3>📊 Gestion des résultats étudiants</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="etudiantNom">Nom</label>
+                            <input type="text" id="etudiantNom" placeholder="Nom de famille">
+                        </div>
+                        <div class="form-group">
+                            <label for="etudiantPrenom">Prénom</label>
+                            <input type="text" id="etudiantPrenom" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label for="etudiantMatricule">Matricule</label>
+                            <input type="text" id="etudiantMatricule" placeholder="Matricule étudiant">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="noteMaths">Mathématiques (/20)</label>
+                            <input type="number" id="noteMaths" min="0" max="20" step="0.25" onchange="calculateMoyenne()">
+                        </div>
+                        <div class="form-group">
+                            <label for="notePhysique">Physique-Chimie (/20)</label>
+                            <input type="number" id="notePhysique" min="0" max="20" step="0.25" onchange="calculateMoyenne()">
+                        </div>
+                        <div class="form-group">
+                            <label for="noteAnglais">Anglais (/20)</label>
+                            <input type="number" id="noteAnglais" min="0" max="20" step="0.25" onchange="calculateMoyenne()">
+                        </div>
+                        <div class="form-group">
+                            <label for="noteFrancais">Français (/20)</label>
+                            <input type="number" id="noteFrancais" min="0" max="20" step="0.25" onchange="calculateMoyenne()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moyenneEtudiant">Moyenne (/20)</label>
+                        <input type="number" id="moyenneEtudiant" readonly style="background: #f8fafc; font-weight: bold;">
+                    </div>
+
+                    <button class="btn" onclick="addStudent()">➕ Ajouter l'étudiant</button>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Liste des étudiants</h3>
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn btn-outline" onclick="showStudentsTab('tous')">Tous</button>
+                        <button class="btn btn-outline" onclick="showStudentsTab('admis')" style="margin-left: 10px;">Admis</button>
+                        <button class="btn btn-outline" onclick="showStudentsTab('echec')" style="margin-left: 10px;">Échecs</button>
+                        <button class="btn" onclick="exportStudentsResults()" style="margin-left: 10px;">📄 Exporter</button>
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Maths</th>
+                                <th>Physique</th>
+                                <th>Anglais</th>
+                                <th>Français</th>
+                                <th>Moyenne</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsList">
+                            <tr>
+                                <td colspan="10" style="text-align: center; color: #6b7280;">Aucun étudiant enregistré</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ONGLET CODES UNIQUES -->
+            <div id="codes" class="tab-content">
+                <div class="card">
+                    <h3>🔢 Générateur de codes uniques</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="codeType">Type de code</label>
+                            <select id="codeType">
+                                <option value="candidat">Code candidat</option>
+                                <option value="correcteur">Code correcteur</option>
+                                <option value="session">Code de session</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="codeLength">Longueur du code</label>
+                            <input type="number" id="codeLength" min="6" max="20" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="codeQuantity">Nombre de codes</label>
+                            <input type="number" id="codeQuantity" min="1" max="1000" value="10">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="generateCodes()">🎲 Générer les codes</button>
+                        </div>
+                    </div>
+
+                    <div id="generatedCodes" class="hidden" style="margin-top: 20px;">
+                        <h4>Codes générés :</h4>
+                        <div id="codesList" style="background: #f8fafc; padding: 15px; border-radius: 6px; margin: 10px 0; max-height: 300px; overflow-y: auto;"></div>
+                        <button class="btn btn-outline" onclick="downloadCodes()">📥 Télécharger les codes</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Statistiques des codes</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalCodes">0</div>
+                            <div class="stat-label">Codes générés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="usedCodes">0</div>
+                            <div class="stat-label">Codes utilisés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="availableCodes">0</div>
+                            <div class="stat-label">Codes disponibles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let submissions = [];
+        let students = [];
+        let corrections = [];
+        let currentCopy = null;
+        let isLoggedInCorrector = false;
+        let isLoggedInAdmin = false;
+        let generatedCodesList = [];
+
+        // Fonction pour changer d'onglet
+        function showTab(tabName) {
+            // Masquer tous les onglets
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Afficher l'onglet sélectionné
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Gestion du dépôt de fichiers
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Vérifications
+            if (!file.type.includes('pdf') && !file.name.endsWith('.zip')) {
+                showAlert('uploadAlert', 'Format non supporté. Seuls les fichiers PDF et ZIP sont acceptés.', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('uploadAlert', 'Fichier trop volumineux. Taille maximale : 10 MB.', 'error');
+                return;
+            }
+
+            // Générer un ID anonyme
+            const anonymousId = 'ANON-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            const submission = {
+                id: Date.now().toString(),
+                anonymousId: anonymousId,
+                filename: file.name,
+                uploadDate: new Date().toLocaleString('fr-FR'),
+                status: 'pending',
+                score: null,
+                comments: ''
+            };
+
+            submissions.push(submission);
+            updateSubmissionsList();
+            updateStats();
+            
+            showAlert('uploadAlert', `Copie envoyée avec succès ! Identifiant anonyme : ${anonymousId}`, 'success');
+            input.value = '';
+        }
+
+        // Afficher les alertes
+        function showAlert(alertId, message, type) {
+            const alert = document.getElementById(alertId);
+            alert.textContent = message;
+            alert.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
+            alert.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Mettre à jour la liste des soumissions
+        function updateSubmissionsList() {
+            const container = document.getElementById('submissionsList');
+            
+            if (submissions.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">Aucune copie déposée</p>';
+                return;
+            }
+
+            const html = submissions.map(sub => `
+                <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <div>
+                            <strong>${sub.filename}</strong><br>
+                            <small style="color: #6b7280;">Déposé le ${sub.uploadDate}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-family: monospace; font-weight: bold;">${sub.anonymousId}</div>
+                            <span class="badge badge-success">✓ Reçu</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Authentification correcteur
+        function loginCorrecteur() {
+            const matricule = document.getElementById('matriculeCorrecteur').value.trim();
+            
+            if (!matricule) {
+                showAlert('correctorAlert', 'Veuillez saisir votre matricule de service.', 'error');
+                return;
+            }
+
+            if (matricule.length < 6) {
+                showAlert('correctorAlert', 'Le matricule doit contenir au minimum 6 caractères.', 'error');
+                return;
+            }
+
+            isLoggedInCorrector = true;
+            document.getElementById('correctorDashboard').classList.remove('hidden');
+            showAlert('correctorAlert', `Connexion réussie. Bienvenue, ${matricule.toUpperCase()}`, 'success');
+            
+            updateCorrectorDashboard();
+        }
+
+        // Mettre à jour le tableau de bord correcteur
+        function updateCorrectorDashboard() {
+            const tbody = document.getElementById('copiesToCorrect');
+            
+            if (submissions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">Aucune copie à corriger</td></tr>';
+                return;
+            }
+
+            const html = submissions.map(copy => {
+                const statusBadge = getStatusBadge(copy.status, copy.score);
+                return `
+                    <tr>
+                        <td style="font-family: monospace;">${copy.anonymousId}</td>
+                        <td>${copy.uploadDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>${copy.score ? copy.score + '/20' : '-'}</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="startCorrection('${copy.id}')" style="padding: 5px 10px; font-size: 0.9rem;">
+                                ${copy.status === 'corrected' ? '👁️ Voir' : '✏️ Corriger'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html;
+            
+            // Mettre à jour la progression
+            const corrected = submissions.filter(s => s.status === 'corrected').length;
+            const total = submissions.length;
+            const percentage = total > 0 ? (corrected / total) * 100 : 0;
+            
+            document.getElementById('correctionProgress').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${corrected} copie(s) corrigée(s) sur ${total}`;
+        }
+
+        // Obtenir le badge de statut
+        function getStatusBadge(status, score) {
+            switch (status) {
+                case 'pending':
+                    return '<span class="badge badge-warning">⏳ En attente</span>';
+                case 'in_progress':
+                    return '<span class="badge badge-warning">✏️ En cours</span>';
+                case 'corrected':
+                    return `<span class="badge badge-success">✅ Corrigé (${score}/20)</span>`;
+                default:
+                    return '<span class="badge">❓ Inconnu</span>';
+            }
+        }
+
+        // Commencer la correction
+        function startCorrection(copyId) {
+            currentCopy = submissions.find(s => s.id === copyId);
+            if (!currentCopy) return;
+
+            // Marquer comme en cours si ce n'est pas déjà corrigé
+            if (currentCopy.status === 'pending') {
+                currentCopy.status = 'in_progress';
+            }
+
+            // Afficher la grille d'évaluation
+            document.getElementById('evaluationGrid').classList.remove('hidden');
+            document.getElementById('currentCopyInfo').innerHTML = `
+                <strong>Correction de la copie : ${currentCopy.anonymousId}</strong><br>
+                <small>Fichier : ${currentCopy.filename} - Déposé le ${currentCopy.uploadDate}</small>
+            `;
+
+            // Remplir les champs si déjà corrigé
+            if (currentCopy.status === 'corrected') {
+                const scores = currentCopy.detailScores || [0, 0, 0, 0];
+                document.getElementById('note1').value = scores[0] || '';
+                document.getElementById('note2').value = scores[1] || '';
+                document.getElementById('note3').value = scores[2] || '';
+                document.getElementById('note4').value = scores[3] || '';
+                document.getElementById('noteTotal').value = currentCopy.score || '';
+                document.getElementById('commentaires').value = currentCopy.comments || '';
+            } else {
+                // Réinitialiser les champs
+                document.getElementById('note1').value = '';
+                document.getElementById('note2').value = '';
+                document.getElementById('note3').value = '';
+                document.getElementById('note4').value = '';
+                document.getElementById('noteTotal').value = '';
+                document.getElementById('commentaires').value = '';
+            }
+        }
+
+        // Calculer le total des notes
+        function calculateTotal() {
+            const note1 = parseFloat(document.getElementById('note1').value) || 0;
+            const note2 = parseFloat(document.getElementById('note2').value) || 0;
+            const note3 = parseFloat(document.getElementById('note3').value) || 0;
+            const note4 = parseFloat(document.getElementById('note4').value) || 0;
+            
+            const total = note1 + note2 + note3 + note4;
+            document.getElementById('noteTotal').value = total.toFixed(1);
+        }
+
+        // Sauvegarder l'évaluation
+        function saveEvaluation() {
+            if (!currentCopy) return;
+
+            const note1 = parseFloat(document.getElementById('note1').value) || 0;
+            const note2 = parseFloat(document.getElementById('note2').value) || 0;
+            const note3 = parseFloat(document.getElementById('note3').value) || 0;
+            const note4 = parseFloat(document.getElementById('note4').value) || 0;
+            const total = note1 + note2 + note3 + note4;
+            const comments = document.getElementById('commentaires').value;
+
+            // Valider les notes
+            if (total > 20) {
+                alert('La note totale ne peut pas dépasser 20/20');
+                return;
+            }
+
+            // Sauvegarder
+            currentCopy.score = parseFloat(total.toFixed(1));
+            currentCopy.detailScores = [note1, note2, note3, note4];
+            currentCopy.comments = comments;
+            currentCopy.status = 'corrected';
+
+            // Fermer la grille d'évaluation
+            closeEvaluation();
+            updateCorrectorDashboard();
+            updateStats();
+
+            alert(`Évaluation sauvegardée avec succès !\nNote finale : ${total}/20`);
+        }
+
+        // Fermer l'évaluation
+        function closeEvaluation() {
+            document.getElementById('evaluationGrid').classList.add('hidden');
+            currentCopy = null;
+        }
+
+        // Authentification admin
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === 'admin123') { // Mot de passe simple pour la démo
+                isLoggedInAdmin = true;
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                showAlert('adminAlert', 'Connexion administrateur réussie', 'success');
+                updateAdminStats();
+                updateAllCopiesList();
+            } else {
+                showAlert('adminAlert', 'Mot de passe incorrect', 'error');
+            }
+        }
+
+        // Mettre à jour les statistiques admin
+        function updateAdminStats() {
+            const corrected = submissions.filter(s => s.status === 'corrected');
+            const totalScores = corrected.reduce((sum, s) => sum + (s.score || 0), 0);
+            const moyenne = corrected.length > 0 ? (totalScores / corrected.length).toFixed(1) : 0;
+            const tauxReussite = corrected.length > 0 ? Math.round((corrected.filter(s => (s.score || 0) >= 10).length / corrected.length) * 100) : 0;
+
+            document.getElementById('totalCopies').textContent = submissions.length;
+            document.getElementById('copiesCorrigees').textContent = corrected.length;
+            document.getElementById('moyenneGenerale').textContent = moyenne + '/20';
+            document.getElementById('tauxReussite').textContent = tauxReussite + '%';
+        }
+
+        // Mettre à jour la liste de toutes les copies
+        function updateAllCopiesList() {
+            const tbody = document.getElementById('allCopiesList');
+            
+            if (submissions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">Aucune copie</td></tr>';
+                return;
+            }
+
+            const html = submissions.map(copy => {
+                const statusBadge = getStatusBadge(copy.status, copy.score);
+                return `
+                    <tr>
+                        <td style="font-family: monospace;">${copy.anonymousId}</td>
+                        <td>${copy.filename}</td>
+                        <td>${copy.uploadDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>${copy.score ? copy.score + '/20' : '-'}</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="viewCopyDetails('${copy.id}')" style="padding: 5px 10px; font-size: 0.9rem;">
+                                👁️ Détails
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html;
+        }
+
+        // Voir les détails d'une copie
+        function viewCopyDetails(copyId) {
+            const copy = submissions.find(s => s.id === copyId);
+            if (!copy) return;
+
+            let details = `Détails de la copie ${copy.anonymousId}\n\n`;
+            details += `Fichier : ${copy.filename}\n`;
+            details += `Date de dépôt : ${copy.uploadDate}\n`;
+            details += `Statut : ${copy.status}\n`;
+            
+            if (copy.status === 'corrected') {
+                details += `\nNote finale : ${copy.score}/20\n`;
+                if (copy.detailScores) {
+                    details += `Détail des notes :\n`;
+                    details += `- Compréhension du sujet : ${copy.detailScores[0]}/5\n`;
+                    details += `- Méthode et raisonnement : ${copy.detailScores[1]}/5\n`;
+                    details += `- Résultats et calculs : ${copy.detailScores[2]}/5\n`;
+                    details += `- Présentation et clarté : ${copy.detailScores[3]}/5\n`;
+                }
+                if (copy.comments) {
+                    details += `\nCommentaires :\n${copy.comments}`;
+                }
+            }
+
+            alert(details);
+        }
+
+        // Gestion des résultats étudiants
+        function calculateMoyenne() {
+            const maths = parseFloat(document.getElementById('noteMaths').value) || 0;
+            const physique = parseFloat(document.getElementById('notePhysique').value) || 0;
+            const anglais = parseFloat(document.getElementById('noteAnglais').value) || 0;
+            const francais = parseFloat(document.getElementById('noteFrancais').value) || 0;
+            
+            const moyenne = (maths + physique + anglais + francais) / 4;
+            document.getElementById('moyenneEtudiant').value = moyenne.toFixed(2);
+        }
+
+        function addStudent() {
+            const nom = document.getElementById('etudiantNom').value.trim();
+            const prenom = document.getElementById('etudiantPrenom').value.trim();
+            const matricule = document.getElementById('etudiantMatricule').value.trim();
+            const maths = parseFloat(document.getElementById('noteMaths').value);
+            const physique = parseFloat(document.getElementById('notePhysique').value);
+            const anglais = parseFloat(document.getElementById('noteAnglais').value);
+            const francais = parseFloat(document.getElementById('noteFrancais').value);
+
+            if (!nom || !prenom || !matricule || isNaN(maths) || isNaN(physique) || isNaN(anglais) || isNaN(francais)) {
+                alert('Veuillez remplir tous les champs avec des valeurs valides.');
+                return;
+            }
+
+            const moyenne = (maths + physique + anglais + francais) / 4;
+            const statut = moyenne >= 10 ? 'admis' : 'echec';
+
+            const student = {
+                id: Date.now().toString(),
+                nom, prenom, matricule,
+                notes: { maths, physique, anglais, francais },
+                moyenne: parseFloat(moyenne.toFixed(2)),
+                statut
+            };
+
+            students.push(student);
+            updateStudentsList();
+
+            // Réinitialiser le formulaire
+            document.getElementById('etudiantNom').value = '';
+            document.getElementById('etudiantPrenom').value = '';
+            document.getElementById('etudiantMatricule').value = '';
+            document.getElementById('noteMaths').value = '';
+            document.getElementById('notePhysique').value = '';
+            document.getElementById('noteAnglais').value = '';
+            document.getElementById('noteFrancais').value = '';
+            document.getElementById('moyenneEtudiant').value = '';
+
+            alert(`Étudiant ajouté avec succès ! Statut : ${statut.toUpperCase()}`);
+        }
+
+        function updateStudentsList(filter = 'tous') {
+            const tbody = document.getElementById('studentsList');
+            let filteredStudents = students;
+
+            if (filter === 'admis') {
+                filteredStudents = students.filter(s => s.statut === 'admis');
+            } else if (filter === 'echec') {
+                filteredStudents = students.filter(s => s.statut === 'echec');
+            }
+
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #6b7280;">Aucun étudiant dans cette catégorie</td></tr>';
+                return;
+            }
+
+            const html = filteredStudents.map(student => {
+                const statutBadge = student.statut === 'admis' 
+                    ? '<span class="badge badge-success">✅ ADMIS</span>'
+                    : '<span class="badge badge-danger">❌ ÉCHEC</span>';
+
+                return `
+                    <tr>
+                        <td style="font-family: monospace;">${student.matricule}</td>
+                        <td><strong>${student.nom}</strong></td>
+                        <td>${student.prenom}</td>
+                        <td>${student.notes.maths}/20</td>
+                        <td>${student.notes.physique}/20</td>
+                        <td>${student.notes.anglais}/20</td>
+                        <td>${student.notes.francais}/20</td>
+                        <td><strong>${student.moyenne}/20</strong></td>
+                        <td>${statutBadge}</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="downloadStudentReport('${student.id}')" style="padding: 5px 10px; font-size: 0.9rem;">
+                                📄 PDF
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        function showStudentsTab(filter) {
+            updateStudentsList(filter);
+        }
+
+        function downloadStudentReport(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const content = `RÉSULTATS DE L'ÉTUDIANT
+
+Nom: ${student.nom}
+Prénom: ${student.prenom}
+Matricule: ${student.matricule}
+
+NOTES:
+- Mathématiques: ${student.notes.maths}/20
+- Physique-Chimie: ${student.notes.physique}/20
+- Anglais: ${student.notes.anglais}/20
+- Français: ${student.notes.francais}/20
+
+MOYENNE: ${student.moyenne}/20
+
+RÉSULTAT: ${student.statut.toUpperCase()}
+${student.statut === 'admis' ? 'Félicitations!' : 'Échec - Rattrapage nécessaire'}
+
+Date de génération: ${new Date().toLocaleDateString('fr-FR')}`;
+
+            downloadTextFile(content, `resultats_${student.matricule}_${student.nom}_${student.prenom}.txt`);
+        }
+
+        function exportStudentsResults() {
+            if (students.length === 0) {
+                alert('Aucun étudiant à exporter');
+                return;
+            }
+
+            let content = `RÉCAPITULATIF DES RÉSULTATS - CONCOURS
+Date de génération: ${new Date().toLocaleDateString('fr-FR')}
+Nombre d'étudiants: ${students.length}
+
+================================================================================
+| MATRICULE    | NOM              | PRÉNOM          | MATHS | P-C   | ANG   | FR    | MOY   | STATUT |
+================================================================================
+`;
+
+            students.forEach(student => {
+                const line = `| ${student.matricule.padEnd(12)} | ${student.nom.substring(0, 16).padEnd(16)} | ${student.prenom.substring(0, 15).padEnd(15)} | ${student.notes.maths.toString().padStart(5)} | ${student.notes.physique.toString().padStart(5)} | ${student.notes.anglais.toString().padStart(5)} | ${student.notes.francais.toString().padStart(5)} | ${student.moyenne.toString().padStart(5)} | ${student.statut.toUpperCase().padEnd(6)} |`;
+                content += line + '\n';
+            });
+
+            const admis = students.filter(s => s.statut === 'admis').length;
+            const echecs = students.filter(s => s.statut === 'echec').length;
+            const tauxReussite = students.length > 0 ? Math.round((admis / students.length) * 100) : 0;
+
+            content += `================================================================================
+
+STATISTIQUES:
+- Total étudiants: ${students.length}
+- Admis: ${admis}
+- Échecs: ${echecs}
+- Taux de réussite: ${tauxReussite}%`;
+
+            downloadTextFile(content, `recapitulatif_resultats_concours_${new Date().toISOString().split('T')[0]}.txt`);
+        }
+
+        // Générateur de codes uniques
+        function generateCodes() {
+            const type = document.getElementById('codeType').value;
+            const length = parseInt(document.getElementById('codeLength').value);
+            const quantity = parseInt(document.getElementById('codeQuantity').value);
+
+            if (length < 6 || length > 20) {
+                alert('La longueur du code doit être entre 6 et 20 caractères');
+                return;
+            }
+
+            if (quantity < 1 || quantity > 1000) {
+                alert('Le nombre de codes doit être entre 1 et 1000');
+                return;
+            }
+
+            const codes = [];
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            
+            for (let i = 0; i < quantity; i++) {
+                let code = '';
+                for (let j = 0; j < length; j++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                
+                // Ajouter un préfixe selon le type
+                const prefix = type === 'candidat' ? 'CND-' : type === 'correcteur' ? 'COR-' : 'SES-';
+                codes.push(prefix + code);
+            }
+
+            generatedCodesList = codes;
+            displayGeneratedCodes(codes);
+            updateCodesStats();
+        }
+
+        function displayGeneratedCodes(codes) {
+            const container = document.getElementById('codesList');
+            container.innerHTML = codes.map(code => `<div style="font-family: monospace; padding: 2px;">${code}</div>`).join('');
+            document.getElementById('generatedCodes').classList.remove('hidden');
+        }
+
+        function downloadCodes() {
+            if (generatedCodesList.length === 0) return;
+
+            const content = `CODES UNIQUES GÉNÉRÉS
+Date de génération: ${new Date().toLocaleDateString('fr-FR')}
+Nombre de codes: ${generatedCodesList.length}
+
+${generatedCodesList.join('\n')}
+
+IMPORTANT: Ces codes sont uniques et ne peuvent être régénérés. 
+Conservez ce fichier en lieu sûr.`;
+
+            downloadTextFile(content, `codes_uniques_${new Date().toISOString().split('T')[0]}.txt`);
+        }
+
+        function updateCodesStats() {
+            document.getElementById('totalCodes').textContent = generatedCodesList.length;
+            document.getElementById('usedCodes').textContent = '0'; // Simulation
+            document.getElementById('availableCodes').textContent = generatedCodesList.length;
+        }
+
+        // Fonctions utilitaires
+        function downloadTextFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateStats() {
+            if (isLoggedInAdmin) {
+                updateAdminStats();
+                updateAllCopiesList();
+            }
+            if (isLoggedInCorrector) {
+                updateCorrectorDashboard();
+            }
+        }
+
+        function exportResults() {
+            if (submissions.length === 0) {
+                alert('Aucune donnée à exporter');
+                return;
+            }
+
+            let content = `RAPPORT D'EXPORT - SYSTÈME DE CONCOURS
+Date d'export: ${new Date().toLocaleDateString('fr-FR')}
+
+COPIES DÉPOSÉES:
+================
+`;
+
+            submissions.forEach(copy => {
+                content += `
+ID Anonyme: ${copy.anonymousId}
+Fichier: ${copy.filename}
+Date de dépôt: ${copy.uploadDate}
+Statut: ${copy.status}
+Note: ${copy.score ? copy.score + '/20' : 'Non corrigé'}
+Commentaires: ${copy.comments || 'Aucun'}
+---
+`;
+            });
+
+            const corrected = submissions.filter(s => s.status === 'corrected');
+            const moyenne = corrected.length > 0 ? (corrected.reduce((sum, s) => sum + (s.score || 0), 0) / corrected.length).toFixed(1) : 0;
+
+            content += `
+STATISTIQUES GLOBALES:
+=====================
+Total des copies: ${submissions.length}
+Copies corrigées: ${corrected.length}
+Moyenne générale: ${moyenne}/20
+Taux de correction: ${submissions.length > 0 ? Math.round((corrected.length / submissions.length) * 100) : 0}%
+`;
+
+            downloadTextFile(content, `rapport_concours_${new Date().toISOString().split('T')[0]}.txt`);
+        }
+
+        function resetSystem() {
+            if (confirm('⚠️ ATTENTION ⚠️\n\nCette action va supprimer TOUTES les données :\n- Toutes les copies déposées\n- Toutes les corrections\n- Tous les résultats d\'étudiants\n- Tous les codes générés\n\nCette action est IRRÉVERSIBLE !\n\nÊtes-vous absolument certain de vouloir continuer ?')) {
+                submissions = [];
+                students = [];
+                corrections = [];
+                generatedCodesList = [];
+                
+                // Réinitialiser les affichages
+                updateSubmissionsList();
+                updateStudentsList();
+                updateStats();
+                updateCodesStats();
+                
+                // Déconnecter les utilisateurs
+                isLoggedInCorrector = false;
+                isLoggedInAdmin = false;
+                document.getElementById('correctorDashboard').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+                document.getElementById('evaluationGrid').classList.add('hidden');
+                
+                alert('✅ Système réinitialisé avec succès !\nToutes les données ont été supprimées.');
+            }
+        }
+
+        function importStudents() {
+            alert('Fonctionnalité d\'import en cours de développement.\nPour l\'instant, vous pouvez ajouter les étudiants manuellement via le formulaire.');
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSubmissionsList();
+            updateStudentsList();
+            console.log('🎓 Plateforme de Concours - Système Complet initialisé');
+        });
+    </script>
+</body>
+</html>
