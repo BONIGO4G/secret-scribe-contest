@@ -54,7 +54,35 @@ interface Copy {
   barcode?: string;
 }
 
-const CorrectorInterface = () => {
+interface CorrectorInterfaceProps {
+  currentUser?: {
+    name: string;
+    role: string;
+  };
+}
+
+// Fonction pour récupérer les informations du professeur
+const getTeacherData = (accessCode: string) => {
+  const storedTeachers = JSON.parse(localStorage.getItem('teacherAccounts') || '[]');
+  return storedTeachers.find((teacher: any) => teacher.accessCode === accessCode);
+};
+
+const CorrectorInterface = ({ currentUser }: CorrectorInterfaceProps) => {
+  // Récupérer la matière du professeur connecté
+  const teacherData = currentUser ? getTeacherData(currentUser.name) : null;
+  const teacherSubject = teacherData?.subject;
+  
+  // Mapping des matières
+  const subjectMapping: { [key: string]: string } = {
+    'Mathématiques': 'maths',
+    'Français': 'francais', 
+    'Physique-Chimie': 'physiqueChimie',
+    'Histoire-Géographie': 'histoireGeo',
+    'Anglais': 'anglais'
+  };
+  
+  const allowedSubject = teacherSubject ? subjectMapping[teacherSubject] : null;
+  
   const generateUniqueId = () => {
     const timestamp = Date.now().toString(36);
     const randomPart = Math.random().toString(36).substr(2, 5);
@@ -67,6 +95,10 @@ const CorrectorInterface = () => {
   };
 
   const calculateMoyenne = (notes: any) => {
+    // Pour un professeur spécialisé, la "moyenne" est juste sa note
+    if (allowedSubject && notes[allowedSubject]) {
+      return parseFloat(notes[allowedSubject]) || 0;
+    }
     const notesValues = Object.values(notes).map(note => parseFloat(note as string) || 0);
     return notesValues.reduce((sum, note) => sum + note, 0) / notesValues.length;
   };
@@ -218,12 +250,21 @@ const CorrectorInterface = () => {
       [!formData.etablissementProf, 'L\'établissement du professeur est requis.']
     ];
 
-    // Vérifier qu'au moins une note est saisie
-    const hasAnyNote = Object.values(formData.notes).some(note => note !== '');
-    if (!hasAnyNote) {
-      setError('Veuillez saisir au moins une note.');
-      setIsSubmitting(false);
-      return;
+    // Vérifier que la note de la matière du professeur est saisie
+    if (allowedSubject) {
+      if (!formData.notes[allowedSubject as keyof typeof formData.notes] || formData.notes[allowedSubject as keyof typeof formData.notes] === '') {
+        setError(`Veuillez saisir la note de ${teacherSubject}.`);
+        setIsSubmitting(false);
+        return;
+      }
+    } else {
+      // Vérifier qu'au moins une note est saisie
+      const hasAnyNote = Object.values(formData.notes).some(note => note !== '');
+      if (!hasAnyNote) {
+        setError('Veuillez saisir au moins une note.');
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // Vérifier que toutes les notes saisies sont valides (0-20)
@@ -614,80 +655,104 @@ const CorrectorInterface = () => {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label>Mathématiques</Label>
-                  <Input
-                    type="number"
-                    value={formData.notes.maths}
-                    onChange={(e) => handleChange('notes.maths', e.target.value)}
-                    min="0"
-                    max="20"
-                    step="0.01"
-                    placeholder="0.00 - 20.00"
-                    className="text-center"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
-                </div>
-                <div>
-                  <Label>Français</Label>
-                  <Input
-                    type="number"
-                    value={formData.notes.francais}
-                    onChange={(e) => handleChange('notes.francais', e.target.value)}
-                    min="0"
-                    max="20"
-                    step="0.01"
-                    placeholder="0.00 - 20.00"
-                    className="text-center"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
-                </div>
-                <div>
-                  <Label>Physique-Chimie</Label>
-                  <Input
-                    type="number"
-                    value={formData.notes.physiqueChimie}
-                    onChange={(e) => handleChange('notes.physiqueChimie', e.target.value)}
-                    min="0"
-                    max="20"
-                    step="0.01"
-                    placeholder="0.00 - 20.00"
-                    className="text-center"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
-                </div>
-                <div>
-                  <Label>Histoire-Géographie</Label>
-                  <Input
-                    type="number"
-                    value={formData.notes.histoireGeo}
-                    onChange={(e) => handleChange('notes.histoireGeo', e.target.value)}
-                    min="0"
-                    max="20"
-                    step="0.01"
-                    placeholder="0.00 - 20.00"
-                    className="text-center"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
-                </div>
-                <div>
-                  <Label>Anglais</Label>
-                  <Input
-                    type="number"
-                    value={formData.notes.anglais}
-                    onChange={(e) => handleChange('notes.anglais', e.target.value)}
-                    min="0"
-                    max="20"
-                    step="0.01"
-                    placeholder="0.00 - 20.00"
-                    className="text-center"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
-                </div>
+                {allowedSubject ? (
+                  // Afficher seulement la matière du professeur
+                  <div className="col-span-full max-w-md mx-auto">
+                    <Label className="text-lg font-medium">{teacherSubject}</Label>
+                    <Input
+                      type="number"
+                      value={formData.notes[allowedSubject as keyof typeof formData.notes]}
+                      onChange={(e) => handleChange(`notes.${allowedSubject}`, e.target.value)}
+                      min="0"
+                      max="20"
+                      step="0.01"
+                      placeholder="0.00 - 20.00"
+                      className="text-center text-lg h-12"
+                      required
+                    />
+                    <p className="text-sm text-slate-600 mt-2 text-center">Note sur 20 points pour {teacherSubject}</p>
+                  </div>
+                ) : (
+                  // Afficher toutes les matières si pas de professeur spécialisé
+                  <>
+                    <div>
+                      <Label>Mathématiques</Label>
+                      <Input
+                        type="number"
+                        value={formData.notes.maths}
+                        onChange={(e) => handleChange('notes.maths', e.target.value)}
+                        min="0"
+                        max="20"
+                        step="0.01"
+                        placeholder="0.00 - 20.00"
+                        className="text-center"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
+                    </div>
+                    <div>
+                      <Label>Français</Label>
+                      <Input
+                        type="number"
+                        value={formData.notes.francais}
+                        onChange={(e) => handleChange('notes.francais', e.target.value)}
+                        min="0"
+                        max="20"
+                        step="0.01"
+                        placeholder="0.00 - 20.00"
+                        className="text-center"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
+                    </div>
+                    <div>
+                      <Label>Physique-Chimie</Label>
+                      <Input
+                        type="number"
+                        value={formData.notes.physiqueChimie}
+                        onChange={(e) => handleChange('notes.physiqueChimie', e.target.value)}
+                        min="0"
+                        max="20"
+                        step="0.01"
+                        placeholder="0.00 - 20.00"
+                        className="text-center"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
+                    </div>
+                    <div>
+                      <Label>Histoire-Géographie</Label>
+                      <Input
+                        type="number"
+                        value={formData.notes.histoireGeo}
+                        onChange={(e) => handleChange('notes.histoireGeo', e.target.value)}
+                        min="0"
+                        max="20"
+                        step="0.01"
+                        placeholder="0.00 - 20.00"
+                        className="text-center"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
+                    </div>
+                    <div>
+                      <Label>Anglais</Label>
+                      <Input
+                        type="number"
+                        value={formData.notes.anglais}
+                        onChange={(e) => handleChange('notes.anglais', e.target.value)}
+                        min="0"
+                        max="20"
+                        step="0.01"
+                        placeholder="0.00 - 20.00"
+                        className="text-center"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sur 20 points</p>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Instructions:</strong> Saisissez les notes obtenues dans chaque matière. 
+                  <strong>Instructions:</strong> {allowedSubject 
+                    ? `En tant que professeur de ${teacherSubject}, vous ne pouvez corriger que les copies de votre matière.`
+                    : `Saisissez les notes obtenues dans chaque matière.`} 
                   Chaque note doit être comprise entre 0 et 20 points. Les décimales sont autorisées (ex: 15.5).
                 </p>
               </div>
@@ -695,23 +760,14 @@ const CorrectorInterface = () => {
 
             {/* Résultats calculés */}
             <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-              <h3 className="font-medium text-slate-700">Résultats Calculés</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h3 className="font-medium text-slate-700">Note attribuée</h3>
+              <div className="grid grid-cols-1 gap-4">
                 <div className="text-center">
-                  <p className="text-sm text-slate-600">Moyenne</p>
-                  <p className="text-2xl font-bold text-slate-700">{currentMoyenne.toFixed(2)}/20</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-slate-600">Mention</p>
-                  <Badge variant={currentMoyenne >= 12 ? "default" : "secondary"} className="text-sm">
-                    {currentMention}
-                  </Badge>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-slate-600">Statut</p>
-                  <Badge variant={currentStatut === "ADMIS" ? "default" : "destructive"} className="text-sm">
-                    {currentStatut}
-                  </Badge>
+                  <p className="text-sm text-slate-600">{allowedSubject ? `Note en ${teacherSubject}` : 'Moyenne'}</p>
+                  <p className="text-3xl font-bold text-slate-700">{currentMoyenne.toFixed(2)}/20</p>
+                  {allowedSubject && (
+                    <p className="text-xs text-slate-500 mt-1">Matière: {teacherSubject}</p>
+                  )}
                 </div>
               </div>
             </div>
